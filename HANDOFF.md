@@ -1,150 +1,124 @@
-# HANDOFF - Gate 0 parallel launch wave
+# HANDOFF - T004 environments and Gate 0 hosted publication
 
-## Authorization
+## Reviewed boundary and parallel authorization
 
-- Closed predecessor: T000 (formal APPROVE in `review/t000-r6`)
-- Authorized tasks: T001, T002, and T005 only
-- Active roles: three fresh role-locked EXECUTOR contexts, one task per context
-- Reviewed base: the single commit containing this HANDOFF and the T000-R6
-  formal review on `review/t000-r6`; the dispatcher MUST resolve and give the
-  same exact SHA to all three Executors before any work begins
-- Human approval: not required by the authoritative task graph; the Human Owner
-  explicitly requested autonomous execution and the shortest safe path to GPU use
-- Gate 0 decision: not granted; this wave produces evidence for later review
-
-No Executor may switch roles, approve its own task, start a dependent task, merge
-to `main`, use final data, execute candidate code, or start policy/model training.
+- Closed batch: Gate 0 accepted-tree integration commit
+  `3e2b749aa5f4862e844d906c874763483c238831`, formally APPROVED on
+  `review/integration-g0` by the sole commit containing this HANDOFF.
+- Dispatcher binding: resolve `review/integration-g0^{commit}` once after this
+  Reviewer commit and give that identical full SHA to both fresh role-locked
+  Executors. Each Executor records it before mutation and fails closed if the
+  branch or worktree is not clean or the ancestry differs.
+- Authorized lanes: (A) T004 isolated Python environments and (B) Gate 0 hosted
+  publication/CI observation. They may run concurrently because T001 and T002
+  are locally approved and serialized. Neither lane may approve itself.
+- Human approval: not required for T004 or publication under the authoritative
+  task graph and the Human Owner's standing autonomous-execution instruction.
+- Gate 0 as a whole is not granted. No merge, `main` update, model/data payload,
+  training, candidate execution, final access, contract change, or Claim is
+  authorized.
 
 ## Isolation and ledger serialization
 
-Create three independent worktrees from the exact reviewed base:
-
-| Task | Branch | Worktree |
+| Lane | Branch | Worktree |
 |---|---|---|
-| T001 | `task/t001-hardware-smoke` | `/tmp/code-verifier-triage-T001` |
-| T002 | `task/t002-upstream-lock` | `/tmp/code-verifier-triage-T002` |
-| T005 | `task/t005-contract-ci` | `/tmp/code-verifier-triage-T005` |
+| T004 | `task/t004-isolated-environments` | `/tmp/code-verifier-triage-T004` |
+| hosted publication | `ops/g0-hosted-publication` | `/tmp/code-verifier-triage-publish-g0` |
 
-- The primary worktree `/data3/xc/code-verifier-triage` is Reviewer-owned during
-  this wave. Executors MUST NOT switch it, stage in it, or edit its files.
-- Each Executor edits and commits only its isolated branch/worktree, including
-  exactly one tail handback block in that branch's copy of `PROGRESS.md`.
-- No shared file outside Git metadata may be used as a ledger. After independent
-  reviews, a Reviewer will serialize accepted task commits and replay the exact
-  ledger tails in task-ID order; concurrent cherry-picks of `PROGRESS.md` are
-  forbidden.
-- One Task ID maps to one reviewable commit boundary. Generated evidence remains
-  ignored/untracked unless the task graph names a tracked report or contract.
+- Create both from the one resolved Reviewer SHA. The primary worktree and the
+  integration/review worktree remain Reviewer-owned and must not be switched,
+  staged, or edited.
+- Each Executor appends exactly one handback to its branch copy of
+  `PROGRESS.md`, commits one reviewable boundary, and stops. A later fresh
+  Reviewer serializes accepted tails; concurrent ledger cherry-picks are banned.
 
-## T001 - immediate four-GPU inventory and synthetic smoke
+## Lane A - T004 isolated environments
 
-### Scope
+### Fixed inputs and safe setup
 
-1. Record host/OS/kernel, CPU/RAM, filesystems/free space, cgroups v2, Docker
-   client/server state, NVIDIA driver/runtime, GPU UUID/name/total memory/current
-   processes, and `nvidia-smi topo -m` in:
-   - `artifacts/inventory/machine_inventory.json`
-   - `reports/gate0/hardware.md`
-2. Reconfirm all four GPUs are available without evicting another user's process.
-   If any GPU has an active foreign compute process or insufficient headroom,
-   wait without mutation and retry at bounded intervals; never kill or preempt it.
-3. Run one reproducible four-rank NCCL synthetic smoke for 1800 uninterrupted
-   seconds, allocating at most 16 GiB per GPU. Exercise allocation/read-write and
-   repeated all-reduce with integrity checks and 60-second heartbeats. Use no
-   model, dataset, optimizer, trainer, candidate program, Docker image, or network
-   service. Record exact command, interpreter/Torch/CUDA/NCCL versions, rank/PID,
-   elapsed time, failures, peak memory, and pre/post GPU process state.
+1. Reverify the clean detached upstreams and fail closed on any mismatch:
+   - CodeScaler commit `e1717833cf88a6bac3630af697f899e49493e8f5`,
+     `/tmp/code-verifier-triage-T002-upstreams-verified-full/CodeScaler`;
+     `requirements.txt` SHA-256
+     `4561895474d0020431bf522f68790985fc2bd650a89d9778d64cfd81400a9655`.
+   - RewardUQ commit `7224a1d35849e608fbe92a3bf2292028d8b39787`,
+     `/tmp/code-verifier-triage-T002-upstreams-verified-full/RewardUQ`;
+     `uv.lock` SHA-256
+     `0a16c669a84e4677a997234a6b3b8a76d79a1c86ff15e0ab7e87997d91db934e`
+     and `pyproject.toml` SHA-256
+     `2490e0503417aaee90e0dfe5a41fd970fde70b772e03ea873ecffc9862783e89`.
+   - Orchestrator `requirements-agent.txt` SHA-256
+     `a4a4392dcc08f2d745527ca862c72ce3f7c82f32813a3f994f31138a61c97e83`.
+2. Use Python 3.10 and only these new user-owned prefixes:
+   - `/data3/xc/.conda/envs/code-verifier-codescaler-py310`
+   - `/data3/xc/.conda/envs/code-verifier-rewarduq-py310`
+   - `/data3/xc/.conda/envs/code-verifier-orchestrator-py310`
+   No root/global install, existing-environment mutation, unknown installer, or
+   credential material is permitted.
+3. CodeScaler's fixed file contains exactly one `logoru==0.7.3`. Create an
+   env-only derived input that replaces exactly that line with
+   `loguru==0.7.3`; preserve the upstream checkout byte-for-byte, record input
+   and derived hashes/diff, and never install `logoru`. Preserve the upstream
+   torch 2.6.0 / torchvision 0.21.0 / torchaudio 2.6.0 / vLLM 0.8.3 pins and
+   official CUDA 12.4 PyTorch wheels. Any resolver drift fails closed.
+4. Resolve RewardUQ independently from its frozen `uv.lock`; do not combine its
+   dependency graph with CodeScaler. The orchestrator installs only the fixed
+   agent requirements. Use official package indexes only and retain resolver
+   command/version plus complete lock/freeze evidence.
+5. Defer FlashAttention; do not build/install `flash-attn`. Use the supported
+   SDPA path for this bootstrap. No Docker or SandboxFusion build is authorized.
 
-### Shared-GPU pause/stop contract
+### Evidence and acceptance
 
-- Control sentinel: `/data3/xc/code-verifier-triage/.git/T001.PAUSE`.
-- On `SIGUSR1`, `SIGTERM`, or sentinel detection, finish only the current bounded
-  collective, atomically flush partial evidence with status `PAUSED` or `STOPPED`,
-  terminate all ranks/children, and poll `nvidia-smi` until the four task PIDs are
-  absent. Record release proof and stop.
-- A paused/stopped run MUST NOT be reported as the required 1800-second PASS.
-  Resume means a fresh uninterrupted 1800-second smoke with a new Run ID after
-  the sentinel is removed; preserve the partial run as negative/partial evidence.
-- Any OOM, NCCL error/hang, integrity mismatch, thermal/ECC issue, foreign-process
-  conflict, or failure to release GPUs fails closed and is recorded.
+- Track only reproducible files under `env/`, `env/README.md`, and
+  `reports/gate0/environment.md`; keep raw machine evidence at ignored
+  `artifacts/provenance/environment.json`. Record tool versions, commands,
+  sources, package hashes/locks, prefix hashes, and limitations without secrets.
+- Import smokes must cover each environment's declared core packages. Torch may
+  perform metadata-only four-device discovery, but no tensor, collective, model,
+  dataset, optimizer, trainer, or CUDA-memory allocation is allowed. Capture
+  pre/post `nvidia-smi` and prove no T004 compute process remains.
+- Acceptance requires three isolated Python 3.10 prefixes, reproducible locks,
+  successful imports, Torch seeing exactly four GPUs from the relevant ML
+  environments, a clean tracked diff, and workflow inspect/validate success.
 
-### Acceptance
+## Lane B - non-force hosted publication and exact CI
 
-- Inventory JSON is machine-readable and the report binds its checksum.
-- Exactly four ranks complete an uninterrupted >=1800-second synthetic smoke;
-  each GPU demonstrates the bounded memory and NCCL integrity checks.
-- Final evidence proves no T001 process remains and GPU memory is released.
+1. Read-only preflight must verify `origin` is exactly
+   `git@github.com:Crushinrain/code-verifier-triage.git`, authentication succeeds,
+   remote `main` remains `f34dbbaa5c643b7ec2b59a9df0587eef9af50bda`, and
+   PR #1 head branch `fix/t000-r5-hosted-controls` remains exactly
+   `1360e76dad6eb13f9495a17b35088f274dd218cd`. Unexpected refs fail closed.
+2. Verify the resolved Reviewer SHA is a descendant of both that PR head and
+   integration commit `3e2b749`. Then perform one atomic, non-force push:
+   - `integration/g0` -> exact `3e2b749aa5f4862e844d906c874763483c238831`;
+   - `review/integration-g0` -> exact resolved Reviewer SHA;
+   - existing PR #1 head `fix/t000-r5-hosted-controls` -> the same Reviewer SHA.
+   Never use force, delete a ref, open a second PR, merge PR #1, mutate `main`,
+   change repository settings/rules, or print authentication material.
+3. Poll at a reasonable interval until the exact Reviewer SHA has terminal
+   hosted status. The required context/job `contracts` must conclude SUCCESS;
+   bind run URL/ID, workflow revision, head SHA, attempt, timestamps, and all job
+   conclusions. Failure, cancellation, timeout, ambiguity, or a different SHA
+   fails closed and blocks all later integration and Claims, although Lane A may
+   finish its isolated handback and review.
 
-## T002 - official upstream and Hugging Face metadata lock
+## Shared GPU pause/checkpoint boundary
 
-### Scope
-
-1. Resolve and shallow/full clone only the official URLs already named in
-   `contracts/upstream.lock.yaml`: CodeScaler, RewardUQ, and SandboxFusion.
-   Verify full immutable commit SHAs, origin URLs, reachability, and clean state.
-   Store clones outside Git-tracked paths; do not vendor source.
-2. Query official Hugging Face API metadata only (no weights or dataset payloads)
-   for Qwen/Qwen3-1.7B-Base, LARK-Lab/CodeScaler-1.7B,
-   Qwen/Qwen3-4B-Base, agentica-org/DeepCoder-Preview-Dataset, and
-   LARK-Lab/CodeScalerPair-51K. Record immutable revisions, canonical IDs,
-   request URLs/timestamps, and card/license metadata with raw-response hashes.
-3. Replace every repository/model/dataset `main` or `RESOLVE*` placeholder in
-   `contracts/upstream.lock.yaml` using only observed official metadata. Do not
-   claim a container digest before T018 builds it. Emit
-   `artifacts/provenance/upstream_manifest.json` and bind the lock-file hash.
-
-### Acceptance
-
-- All official repository URLs and full SHAs are reproducible and clean.
-- No repository/model/dataset entry contains `main`, `latest`, or `RESOLVE*`.
-- Manifest and lock hashes agree; no weight, data payload, token, or copied
-  upstream source enters Git.
-
-## T005 - contract, schema, task-graph CI negatives and active digest
-
-### Scope
-
-1. Extend the existing bundle validator/CI without weakening the reviewed
-   `contracts` check. Add `tests/test_contracts.py` covering the valid starter
-   bundle plus isolated negative fixtures for malformed schema, schema-invalid
-   documents, missing dependency, and cyclic task dependencies.
-2. Add a deterministic active-contract digest over the authoritative contract
-   set, with explicit ordered paths and SHA-256, and verify it in CI. Do not edit
-   contract meaning merely to satisfy a test.
-3. Keep CI least-privilege, PR/push triggered, pinned where practical, and free
-   of secrets/network-dependent tests. Re-run the 91-entry starter manifest,
-   bundle validator, positive tests, every negative test, workflow inspect, and
-   workflow validate.
-
-### Acceptance
-
-- Normal bundle and active digest pass; every specified corruption fails for the
-  intended reason, including dependency-cycle rejection.
-- CI configuration invokes those checks and remains compatible with required
-  protected-main context `contracts`.
-- Frozen approvals, Claims, data, and unrelated implementation are unchanged.
-
-## Binding checkpoint policy for every later model-training HANDOFF
-
-This wave does not authorize training. A future Reviewer MUST carry these exact
-minimums into any training manifest before GPUs are used for model optimization:
-
-- LoRA/smoke: atomic checkpoint every 10 minutes or 50 optimizer steps,
-  whichever occurs first.
-- Full/FSDP: atomic checkpoint every 20 minutes or 100 optimizer steps,
-  whichever occurs first, and never more than 30 minutes between checkpoints.
-- `SIGUSR1`, `SIGTERM`, or the declared `PAUSE` sentinel: complete the current
-  atomic optimizer step, atomically checkpoint, stop all children, and prove GPU
-  release. Retain `latest3` plus named milestones.
-- Resume validation MUST restore and verify model/adapters, optimizer, scheduler,
-  scaler, global/micro step, epoch, dataloader/sampler cursor, all RNG states,
-  router/budget state, cache identity, code/config/contract/upstream/data hashes,
-  and checkpoint checksum before continuing. Any mismatch fails closed.
+This HANDOFF authorizes no training. Every later training HANDOFF must retain:
+LoRA/smoke atomic checkpoints every 10 minutes or 50 optimizer steps; full/FSDP
+checkpoints every 20 minutes or 100 steps and never over 30 minutes apart; on
+`SIGUSR1`, `SIGTERM`, or declared `PAUSE`, finish the current atomic optimizer
+step, atomically checkpoint, stop all children, and prove GPU release; retain
+`latest3` plus milestones and verify full model/optimizer/scheduler/scaler,
+position, RNG, router, cache, source/config/data hashes, and checkpoint checksum
+before resume. T004 and publication must never kill or preempt another user's GPU
+process.
 
 ## Common handback
 
-Each Executor runs workflow `inspect` and `validate`, task-specific tests, checks
-its complete diff and clean worktree, commits one task boundary, appends exactly
-one self-check/handback block with primary evidence and limitations, then stops
-for a fresh independent Reviewer. No Executor may begin T003, T004, T010, T018,
-T023, training, or another wave.
+Each Executor runs relevant tests plus workflow inspect/validate, checks the full
+diff and clean worktree, records exact commands/evidence/limitations, commits its
+single task boundary, appends one `HANDED BACK FOR REVIEW` block, and stops for a
+fresh independent Reviewer. No dependent task or hosted merge begins from an
+Executor handback.

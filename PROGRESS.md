@@ -1490,3 +1490,49 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
   validators, digests, workflow health, and clean isolated worktree. Stop before
   publication, PR update, merge, GPU use, or T004 without a later HANDOFF.
 - Status: HANDED BACK FOR REVIEW
+
+
+### [2026-07-12 04:56 +08:00] Review Gate0 accepted-tree integration - formal independent review
+- Reviewed object: integration commit
+  `3e2b749aa5f4862e844d906c874763483c238831`, parent fixed Gate 0 base
+  `2b5c72bdc48c465d8eea4a604905564772edbc02`, on clean isolated branch
+  `integration/g0`; the primary worktree remained clean at the fixed base.
+- Reviewer platform: Codex
+- Reviewer independence: PASS - this fresh role-locked Reviewer did not execute
+  T001, T002, T005, their repairs, or the integration. It independently reread
+  the governed documents and primary history, inspected the complete integration
+  diff, replayed every source-tree/ledger comparison, and reran all required
+  offline checks without installing packages, using GPU compute, or publishing.
+- Accepted-tree equality: PASS - the three non-ledger T001 paths are blob-equal
+  to `0db5273c132fb25e3ce7ff977adf306e5539e025`; all nine non-ledger T002/T005
+  paths are blob-equal to final accepted tree
+  `b0c8b83f15b778595a21fe8d61949870f8f0de66`. Their union is exactly the
+  non-ledger integration diff, and `HANDOFF.md` remained byte-identical to base.
+- Ledger serialization: PASS - exact base 876 lines plus accepted suffixes
+  `review/t001@37dbed0` (128 lines), `review/t002-r1@e1ec2dd` (279 lines), and
+  `review/t005-r1@6c9b388` (156 lines) occur once in T001/T002/T005 order,
+  followed only by the 53-line integration handback. All 29 headings are unique
+  and the handback terminates the monotonic EOF append.
+- Independent tests: PASS - T001 suite `8 passed`; combined contract/starter
+  suite `12 passed`; focused starter/workflow suite `6 passed`. Both validators
+  report 14 contracts, 6 schemas, 69 tasks, and 7 Gate checklists; workflow
+  inspect correctly required this fresh review and workflow validate returned
+  zero errors and warnings.
+- Digest/provenance checks: PASS - baseline verifier accepts 90 immutable starter
+  entries plus only the declared upstream-lock exception; active aggregate is
+  `1e4b93129fa8582e09ac2caffd9d1918a4e1a98c0a1b5bf40c73728111f2ff39`
+  and legacy digest is
+  `c1bb99938679a78ca606165294eb5ed812dbd842b31c394cd68053da3a34064f`.
+  Manifest, active-manifest, and upstream-lock hashes are respectively
+  `91a5f561a616cd3e66555e076dc6d74b8f776a4c600fff7cd5f78b7424f75f2d`,
+  `30b9b04973c04d454b4e9f0fe92edbf55f6c5dc0b109b37f0612d939fdda208a`,
+  and `c741c645cb07f7418dda3afe71a2e669e56fd00050601279cda3598a977b55bb`.
+- Isolation/safety: PASS - integration and primary worktrees are clean; no
+  integration remote-tracking ref exists; no GPU compute or project training
+  process was present; no GPU, model/data payload, candidate, Docker, final,
+  environment-install, merge, push, contract, approval, or Claim action occurred.
+- Integration result: APPROVED. T001, T002, and T005 accepted code and evidence
+  now have one reviewed serialized boundary. T004 is dependency-eligible from
+  the exact Reviewer commit containing the next HANDOFF. Hosted CI remains
+  unobserved and must pass on that exact SHA before later integration or Claims.
+- Gate decision: APPROVE
