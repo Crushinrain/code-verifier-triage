@@ -139,3 +139,62 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
 - Decision rationale: review evidence is sufficient, but two mandatory T000
   requirements are unmet, so neither approval nor conditional approval is valid.
 - Gate decision: REJECT
+
+### [2026-07-11 21:36 +08:00] Batch T000-R1 - self-check & handback
+- Active role: EXECUTOR; this context did not perform or alter the formal T000
+  review and did not approve its own repair.
+- Scope fact: only `.pre-commit-config.yaml`,
+  `.github/workflows/contracts.yml`, and this `PROGRESS.md` tail append are in
+  the repair change set; no T001/T005 implementation or frozen-source change was
+  made.
+- Implementation fact: pre-commit uses two `repo: local`, `language: system`
+  hooks for the existing bundle validator and 91-entry manifest. The validator
+  selects `${CODE_VERIFIER_PYTHON:-python3}`; no server-specific interpreter
+  path is tracked.
+- Tooling limitation: `command -v pre-commit` returned no path, so the CLI was
+  not run or installed. Bare `python3 scripts/validate_bundle.py .` had already
+  failed with `ModuleNotFoundError: jsonschema`; server validation therefore
+  explicitly set `CODE_VERIFIER_PYTHON=/data3/xc/.conda/envs/d2l/bin/python`.
+- Pre-commit acceptance: pass - the validator hook-equivalent command returned
+  `OK: 14 contracts, 6 schemas, 69 tasks, 7 Gate checklists`; the manifest
+  hook-equivalent `sha256sum --check MANIFEST.sha256` returned 91/91 OK.
+- CI config static validation: pass - the existing d2l Python/PyYAML parser
+  asserted PR and push triggers, Ubuntu, `contents: read`, non-persistent
+  checkout credentials, Python 3.10, `requirements-agent.txt` installation,
+  bundle validation, manifest validation, and contract-digest commands.
+- Hosted CI limitation: not run - no remote, network, push, or hosted operation
+  was authorized in this batch.
+- Contract digest: `3480e4dde715e7999f7e09b6534b9c40c83e08f36daef6f787bedf5abf4244e7`.
+- Implementation hash: `.pre-commit-config.yaml` =
+  `a6bac35806c691d4d76ee04724562addff13145fb23126ba8166c448ebab22b3`.
+- Implementation hash: `.github/workflows/contracts.yml` =
+  `590127f2264539aab5614d8427cd311784539be9f7bfc6acf5530f6da2570baf`.
+- Workflow before handback: `validate --json` returned zero errors/warnings;
+  `inspect --json` returned `READY_FOR_EXECUTION` with latest valid formal
+  review `REJECT`.
+- Git evidence: branch `fix/t000-r1-controls`, base/review tip
+  `394a80497ba10acec29175c6fca135170e367c69`; `main` remained
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`.
+- Commit binding: this block and the two controls are bound by their sole
+  containing repair commit; the fresh Reviewer must resolve and verify that SHA
+  with `git rev-parse HEAD` and confirm exactly one commit over the review tip.
+- Artifact hygiene: pass - tracked generated/heavy path count was zero.
+- Parent isolation before handback: pass - parent HEAD remained
+  `4ecbc0f2bc7788a877684f7c896607a9bba78fb2`; parent HEAD/config/index hashes
+  matched the T000 ledger, and `PV_forecast` retained its pre-existing
+  ` M PV_forecast` state.
+- External hosting fact: the Human Owner supplied
+  `git@github.com:Crushinrain/code-verifier-triage.git`, but this HANDOFF does
+  not authorize key generation, `git remote`, network access, or push. Those
+  actions require a later Reviewer-prepared HANDOFF; `git remote -v` remains
+  empty.
+- Acceptance local controls: pass - both implementation files are syntactically
+  valid and their underlying read-only commands pass without installation.
+- Acceptance hosted main protection: fail/block - no hosted CI or protection
+  evidence exists; the supplied URL alone does not establish enforcement.
+- Authorization boundary: T001, T005, research Gate 0, and all gated actions
+  remain prohibited.
+- Reviewer attention: independently inspect the containing commit, rerun static
+  and command checks, verify post-handback workflow state, and keep hosted
+  protection failed/blocked unless real external evidence is later authorized.
+- Status: HANDED BACK FOR REVIEW

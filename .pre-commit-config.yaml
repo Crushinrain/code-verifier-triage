@@ -1,0 +1,15 @@
+repos:
+  - repo: local
+    hooks:
+      - id: validate-bundle
+        name: validate bundle
+        entry: >-
+          bash -c 'exec "${CODE_VERIFIER_PYTHON:-python3}"
+          scripts/validate_bundle.py .'
+        language: system
+        pass_filenames: false
+      - id: verify-starter-manifest
+        name: verify 91-entry starter manifest
+        entry: sha256sum --check MANIFEST.sha256
+        language: system
+        pass_filenames: false
