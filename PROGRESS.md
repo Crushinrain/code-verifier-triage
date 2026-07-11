@@ -430,3 +430,103 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
 - Decision rationale: the safety boundary passed, but the T000-R3 objective and
   all remote publication acceptance criteria remain unmet; repair is required.
 - Gate decision: REJECT
+
+### [2026-07-12 02:28 +08:00] Batch T000-R4 - safe probe handback
+- Active role: EXECUTOR; this fresh role-locked context did not perform the
+  T000-R3 formal review and did not issue its own approval.
+- Git boundary: started from clean `review/t000-r3` at
+  `7f7e1d0a88c5660db90d387f419257e793dd5f24` and created only
+  `fix/t000-r4-safe-probe`; local `main` remained
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`.
+- Offline transport preflight: pass - exact `origin`, repository-local
+  `core.sshCommand`, deploy public-key and known-host fingerprints, private-key
+  mode 600, `/usr/bin/ssh`, `/usr/bin/git`, GNU `/usr/bin/timeout`, all eight
+  source refs, and absence of every stage/result evidence path were verified.
+- Controller evidence: `.git/t000-r4-network-probe.py` has mode 700, size 5,353
+  bytes, and SHA-256
+  `3ee1d018160d5c94d75be6c227569fcd44f6f5066dda19a99f661892b2a1f34d`;
+  `/usr/bin/python3 -X pycache_prefix=.git/t000-r4-pycache -m py_compile`
+  passed before network access.
+- Controller safety review: pass - standard library only; no arguments or stdin;
+  fixed absolute executables, paths, identity, and eight refspec constants;
+  `subprocess.Popen(..., shell=False, stdin=DEVNULL, stdout=PIPE,
+  stderr=PIPE)` for every child; 25-second auth/empty checks, 60-second push;
+  timeout kill/reap; exclusive mode-600 evidence writes; no credential value,
+  private-key bytes, shell invocation, inline Bash, command substitution,
+  `eval`, or user-controlled input.
+- Sole invocation: `/usr/bin/timeout --signal=KILL 125 /usr/bin/python3
+  /data3/xc/code-verifier-triage/.git/t000-r4-network-probe.py`; it was invoked
+  exactly once through the fixed outer SSH transport and exited 0. No stage was
+  retried.
+- Exact controller JSON: `{"auth_child_rc":1,"auth_rc_exact":true,"auth_stderr_bytes":114,"auth_stderr_exact":true,"auth_stderr_sha256":"1edd12c0c92d7c9ef45cc76898a1d265b161acee324ba7b12d537f72eed2e096","auth_stdout_bytes":0,"auth_stdout_exact":true,"auth_stdout_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","auth_timed_out":false,"ls-remote_child_rc":0,"ls-remote_rc_exact":true,"ls-remote_stderr_bytes":0,"ls-remote_stderr_exact":true,"ls-remote_stderr_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","ls-remote_stdout_bytes":0,"ls-remote_stdout_exact":true,"ls-remote_stdout_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","ls-remote_timed_out":false,"push_child_rc":0,"push_rc_exact":true,"push_stderr_bytes":0,"push_stderr_exact":true,"push_stderr_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","push_stdout_bytes":648,"push_stdout_exact":true,"push_stdout_sha256":"a1498e520598b5a77d0466b91640360029425f3ec2983e9b38ed82c66908f480","push_timed_out":false,"stage":"complete"}`
+- Authentication acceptance: pass - child rc 1, no timeout, zero stdout bytes,
+  and the 114-byte stderr exactly matched the approved newline-terminated
+  GitHub deploy-key identity line.
+- Empty-remote acceptance: pass - the single `git ls-remote origin` returned
+  child rc 0, no timeout, and zero stdout/stderr bytes.
+- Atomic push acceptance: pass - the single non-forced
+  `git push --porcelain --atomic origin` returned child rc 0, no timeout,
+  648 stdout bytes, zero stderr bytes, and `Done` after exactly eight
+  `[new branch]` records: `main`, `review/t000-initial`,
+  `fix/t000-r1-controls`, `review/t000-r1`,
+  `fix/t000-r2-github-transport`, `review/t000-r2`,
+  `fix/t000-r3-initial-publish`, and `review/t000-r3`.
+- Source SHA `main`:
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`.
+- Source SHA `review/t000-initial`:
+  `394a80497ba10acec29175c6fca135170e367c69`.
+- Source SHA `fix/t000-r1-controls`:
+  `f34dbbaa5c643b7ec2b59a9df0587eef9af50bda`.
+- Source SHA `review/t000-r1`:
+  `3a8010adc162febd0889ee0f6e62eab37f580758`.
+- Source SHA `fix/t000-r2-github-transport`:
+  `6f679b557e3b99f154e4cfbf3247e116da4904f9`.
+- Source SHA `review/t000-r2`:
+  `f06e6e94b3e9ed6c6c99066452f43407b2083ddc`.
+- Source SHA `fix/t000-r3-initial-publish`:
+  `efc326d6897dec8853968cdf6c9d710a4300d295`.
+- Source SHA `review/t000-r3`:
+  `7f7e1d0a88c5660db90d387f419257e793dd5f24`.
+- Evidence `auth.stdout`: mode 600, size 0, SHA-256
+  `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+- Evidence `auth.stderr`: mode 600, size 114, SHA-256
+  `1edd12c0c92d7c9ef45cc76898a1d265b161acee324ba7b12d537f72eed2e096`.
+- Evidence `auth.rc`: mode 600, size 2, value 1, SHA-256
+  `4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865`.
+- Evidence `ls-remote.stdout` and `ls-remote.stderr`: each mode 600, size 0,
+  SHA-256 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+- Evidence `ls-remote.rc`: mode 600, size 2, value 0, SHA-256
+  `9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa`.
+- Evidence `push.stdout`: mode 600, size 648, SHA-256
+  `a1498e520598b5a77d0466b91640360029425f3ec2983e9b38ed82c66908f480`.
+- Evidence `push.stderr`: mode 600, size 0, SHA-256
+  `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+- Evidence `push.rc`: mode 600, size 2, value 0, SHA-256
+  `9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa`.
+- Evidence `result.json`: mode 600, size 1,066, SHA-256
+  `d8e9bec6b776339605c370937bae075c702f370bebe5d1b46d0a5091693fe135`.
+- Local push aftermath: exactly the eight corresponding `refs/remotes/origin/*`
+  refs match the recorded source SHAs; `fix/t000-r4-safe-probe` was not pushed.
+- Transport/key isolation: exact origin and repository-local SSH command remain
+  unchanged; public key, known-hosts, and `.git/config` hashes remain
+  `e5cbab4ed8f7a5533d9de64398530e9d6abb50516ade720aac61d3df53b37c4c`,
+  `6233fddbb0a29afc8c4e8c699733c1a188c3a41f2fb63a2640653dc4aea624ce`,
+  and `0f53951e2cef9ee904f098689ba89b81b8ed585969f6f49ddda1d6052ab28a6a`;
+  private-key metadata remains mode 600, size 432, mtime 1783779040, inode
+  43540349 without reading its content.
+- Parent isolation: parent HEAD remains
+  `4ecbc0f2bc7788a877684f7c896607a9bba78fb2`; parent HEAD/config/index hashes
+  match the ledger baseline and `PV_forecast` retains its pre-existing
+  `M PV_forecast` state.
+- Prohibited actions: no second auth, second `ls-remote`, second push, fetch,
+  pull, clone, merge, rebase, reset, force, deletion, tags, upstream setup,
+  API/CLI mutation, PR, ruleset, branch-protection setting, installation,
+  T001/T005, Gate 0, GPU/model/data/Docker, contract, approval, or Claim action.
+- Hosted limitation: branch-protection/ruleset enforcement remains unverified;
+  successful publication alone does not satisfy that T000 acceptance item.
+- Task T000-R4: pass - the fixed controller proved the deploy identity and empty
+  remote, then atomically published all and only the eight authorized refs.
+- Reviewer attention: independently verify the containing commit, controller
+  and evidence metadata, fixed eight-ref push record, post-run isolation, and
+  workflow state without repeating any network action.
+- Status: HANDED BACK FOR REVIEW
