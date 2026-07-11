@@ -331,3 +331,71 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
   cannot be unconditionally approved until real hosted main protection is
   independently evidenced.
 - Gate decision: CONDITIONAL APPROVE
+
+### [2026-07-11 22:31 +08:00] Batch T000-R3 - initial publication handback
+- Active role: EXECUTOR; this fresh role-locked context did not perform the
+  T000-R2 formal review.
+- Git boundary: created `fix/t000-r3-initial-publish` from clean review tip
+  `f06e6e94b3e9ed6c6c99066452f43407b2083ddc`; local `main` remained
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`.
+- Preflight result: pass - worktree clean; exact origin and repository-local
+  `core.sshCommand` matched; private-key mode was 600; public-key fingerprint
+  was `SHA256:uEvYGvdUeVBES69/F5njgZcSIKJm+mGZrqyrx33iEoA`; known-host
+  fingerprint was `SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU`.
+- Pre-push source SHA `main`:
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`.
+- Pre-push source SHA `review/t000-initial`:
+  `394a80497ba10acec29175c6fca135170e367c69`.
+- Pre-push source SHA `fix/t000-r1-controls`:
+  `f34dbbaa5c643b7ec2b59a9df0587eef9af50bda`.
+- Pre-push source SHA `review/t000-r1`:
+  `3a8010adc162febd0889ee0f6e62eab37f580758`.
+- Pre-push source SHA `fix/t000-r2-github-transport`:
+  `6f679b557e3b99f154e4cfbf3247e116da4904f9`.
+- Pre-push source SHA `review/t000-r2`:
+  `f06e6e94b3e9ed6c6c99066452f43407b2083ddc`.
+- Authentication command consumed exactly once:
+  `ssh -i /data3/xc/.ssh/code_verifier_triage_github_ed25519 -o
+  IdentitiesOnly=yes -o
+  UserKnownHostsFile=/data3/xc/code-verifier-triage/.git/github_known_hosts
+  -o StrictHostKeyChecking=yes -o BatchMode=yes -T git@github.com`.
+- Exact capture wrapper: `set +e; auth_output="$(ssh <command-above>
+  2>&1)"; auth_exit=$?; set -e; printf AUTH_EXIT/AUTH_OUTPUT; test
+  "$auth_exit" -eq 1; test "$auth_output" = "$expected"`, where expected
+  was `Hi Crushinrain/code-verifier-triage! You've successfully authenticated,
+  but GitHub does not provide shell access.`.
+- Authentication evidence: fail/ambiguous - the outer orchestration returned
+  exit 1 with empty stdout and empty stderr. None of the intended `AUTH_EXIT`,
+  `AUTH_OUTPUT`, or `AUTH_RESULT` markers was returned.
+- Observed duration evidence: the tool yielded at 10.0 seconds, again at 10.0
+  seconds, then reported failure after a further 19.1 seconds; cumulative
+  observed orchestration time was approximately 39.1 seconds.
+- Interpretation: successful authentication for the expected repository deploy
+  identity was not proven. Network timeout, remote command interruption, and an
+  inner assertion failure cannot be distinguished from the returned evidence.
+- Fail-closed action: no second authentication attempt was made. The authorized
+  one-attempt budget is consumed.
+- `git ls-remote origin`: not run because authentication was not proven; remote
+  emptiness therefore remains unknown.
+- Initial push: not run. No branch, tag, deletion, force update, or upstream
+  configuration was sent.
+- Local no-fetch/push evidence: remote-tracking ref count remained zero and
+  `.git/FETCH_HEAD` remained absent; all six local source SHAs were unchanged.
+- Prohibited actions: no fetch, pull, API/CLI mutation, PR, ruleset, branch
+  protection, installation, merge, reset, retry, or second network action.
+- Workflow before handback: inspect returned `READY_FOR_EXECUTION` with latest
+  valid verdict `CONDITIONAL APPROVE`; validate returned zero errors/warnings.
+- Parent isolation before handback: parent HEAD remained
+  `4ecbc0f2bc7788a877684f7c896607a9bba78fb2`; parent HEAD/config/index hashes
+  matched the ledger baseline and `PV_forecast` retained ` M PV_forecast`.
+- Acceptance authentication: fail/unresolved - expected deploy-identity success
+  message and acceptable no-shell exit were not captured.
+- Acceptance empty-remote proof: not tested.
+- Acceptance six-branch push: not attempted.
+- Next authority: a fresh Reviewer must assess this evidence and prepare a new
+  HANDOFF before any authentication retry, remote read/write, or hosted action.
+- Authorization boundary: T001, T005, research Gate 0, ruleset/branch
+  protection/PR/API mutation, and all broader remote actions remain prohibited.
+- Reviewer attention: do not infer successful authentication from the deploy-key
+  installation fact; treat the empty command evidence as ambiguous.
+- Status: HANDED BACK FOR REVIEW
