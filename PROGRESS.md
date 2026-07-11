@@ -899,3 +899,49 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
 - Reviewer attention: independently rerun tests, validators, manifest/digest,
   workflow checks, and preserve the stated T002 integration ordering.
 - Status: HANDED BACK FOR REVIEW
+
+### [2026-07-12] Review T005 - formal independent review
+- Reviewed object: commit
+  `a2c7887f3322d98ae8e62c84b41f006c0e52fda8`, parent
+  `2b5c72bdc48c465d8eea4a604905564772edbc02`, on
+  `task/t005-contract-ci`; the task worktree and primary Reviewer worktree were
+  clean, and the commit contains only the six authorized T005 paths.
+- Reviewer platform: Codex
+- Reviewer independence: PASS - this fresh role-locked review did not execute or
+  implement T005; it independently reread the project contract, plan, Gate 0
+  HANDOFF, task graph, review protocol, ledger, complete commit diff, and reran
+  the validators, digest checker, tests, manifest check, and workflow checks.
+- Scope and isolation: PASS - the diff adds/updates only the contracts workflow,
+  explicit-root validator, active-digest checker/manifest, regression tests, and
+  the append-only T005 handback. Contracts, schemas, task graph, approvals,
+  Claims, parent repository, primary worktree, T001, and T002 are unchanged.
+- Positive checks: PASS - legacy and explicit-root validators independently
+  report 14 contracts, 6 schemas, 69 tasks, and 7 Gate checklists; the ordered
+  14-file digest passes with aggregate
+  `8e79d65f90db5b3db1c3e379e15be84fbdf4e15ab99fce4753148331e314c077`;
+  all 91 immutable starter-manifest entries pass; workflow inspect/validate have
+  no validation or approval errors.
+- Blocking test finding: `tests/test_contracts.py` ends immediately after
+  `root = isolated_bundle(tmp_path)` inside
+  `test_active_contract_freeze_drift_fails_through_real_cli`. It never mutates a
+  contract, invokes the real digest CLI, or asserts a non-zero result. Therefore
+  pytest reports `6 passed` although the sixth test is vacuous, and the handback
+  claim that active-contract digest drift was exercised is false-positive
+  evidence. The other four negative fixtures do use isolated copies and real CLI
+  subprocesses and pass for their intended reasons.
+- Acceptance: REJECT - the implementation's positive digest check and CI step
+  work, but T005 cannot be accepted while its named digest-drift regression test
+  proves nothing and the handback overstates the negative evidence.
+- Repair authorization: a fresh Executor may create
+  `fix/t005-r1-active-digest-negative` from this reviewed task commit and change
+  only `tests/test_contracts.py` plus an append-only `PROGRESS.md` handback. The
+  test must alter one contract in an isolated bundle, run the real digest checker,
+  assert non-zero exit and the specific digest-mismatch reason, then rerun all
+  positive/negative checks, both validators, the 91-entry manifest, workflow
+  inspect/validate, and stop for a fresh review.
+- Integration authorization: withheld. T002 may continue its isolated metadata
+  work, but it MUST NOT integrate `a2c7887` or treat T005 as accepted. Only after
+  an R1 formal APPROVE may T002 integration incorporate the reviewed T005 repair
+  SHA and atomically refresh `.workflow/contracts.sha256` with the authorized
+  `contracts/upstream.lock.yaml` change.
+- Gate decision: REJECT
