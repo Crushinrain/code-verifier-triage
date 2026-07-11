@@ -530,3 +530,46 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
   and evidence metadata, fixed eight-ref push record, post-run isolation, and
   workflow state without repeating any network action.
 - Status: HANDED BACK FOR REVIEW
+
+### [2026-07-12] Review T000-R4 - formal independent review
+- Reviewed object: commit
+  `4cfd5cbcf1c9689b1017db549924be10864c8293`, parent
+  `7f7e1d0a88c5660db90d387f419257e793dd5f24`, on
+  `fix/t000-r4-safe-probe`; the worktree was clean and the tracked diff was an
+  append-only 100-line addition to `PROGRESS.md` only.
+- Reviewer platform: Codex
+- Reviewer independence: PASS - this fresh role-locked Reviewer did not execute
+  T000-R4 or repeat authentication, ls-remote, push, or any GitHub action; it
+  independently reread the fixed commit, controller, local evidence, refs, and
+  isolation state using offline repository checks only
+- Controller verification: PASS - mode 700, size 5,353, and SHA-256
+  `3ee1d018160d5c94d75be6c227569fcd44f6f5066dda19a99f661892b2a1f34d`;
+  all three child invocations use fixed absolute argv with `shell=False`,
+  DEVNULL stdin, captured stdout/stderr, bounded communicate timeouts, and
+  kill/reap on timeout. The authentication identity, eight push refspecs, and
+  all executable/evidence paths are fixed constants with no caller input.
+- Primary evidence: PASS - every stage/result file is mode 600 and its size,
+  SHA-256, rc bytes, and result JSON match the handback. Authentication is
+  exactly child rc 1, no timeout, empty stdout, and the approved 114-byte
+  newline-terminated deploy-key identity; ls-remote is rc 0 with empty
+  stdout/stderr; the final JSON stage is `complete`.
+- Publication evidence: PASS - push rc 0, no timeout, empty stderr, and the
+  648-byte porcelain output contains exactly eight `[new branch]` records and
+  `Done` for the authorized refs. Exactly eight corresponding local
+  `refs/remotes/origin/*` refs exist at the recorded source SHAs; neither R4
+  branch was part of that one-shot push.
+- Isolation evidence: PASS - local `main` remains
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`; exact origin, repository-local
+  SSH command, public key, known-hosts, `.git/config`, and private-key metadata
+  match the recorded baseline. Parent HEAD/config/index hashes are unchanged
+  and `PV_forecast` retains only its pre-existing modification.
+- Batch acceptance: PASS - the one fixed controller safely proved the deploy
+  identity and initially empty remote, then atomically published all and only
+  the eight authorized refs without retry or prohibited action.
+- Remaining T000 condition: real hosted PR enforcement, protected `main`, and a
+  bound passing CI check are not yet evidenced. Only the bounded T000-R5 hosted
+  control closure in the current HANDOFF is authorized; no merge, T001, T005,
+  Gate 0, GPU/model/data, or other project work is authorized.
+- Decision rationale: T000-R4 fully satisfies its bounded objective, while T000
+  remains conditional until the hosted control is independently evidenced.
+- Gate decision: CONDITIONAL APPROVE

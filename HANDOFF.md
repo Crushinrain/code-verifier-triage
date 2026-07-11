@@ -2,142 +2,153 @@
 
 ## Batch identity
 
-- Repair batch: T000-R4
+- Repair batch: T000-R5
 - Parent Task ID: T000
-- Title: Retry authentication through a fixed argv-safe probe and conditionally publish
+- Title: Close hosted PR, CI, and protected-main controls
 - Active role: EXECUTOR
-- Required context: a fresh role-locked Executor that did not perform the T000-R3
-  formal review
-- Base: current tip of `review/t000-r3`
-- Required work branch: `fix/t000-r4-safe-probe`
+- Required context: a fresh role-locked Executor that did not perform the
+  T000-R4 formal review
+- Base: current tip of `review/t000-r4`
+- Required work branch: `fix/t000-r5-hosted-controls`
 - GPU required: no
 - T001 authorization: no
 
-## Failure context and single objective
+## Single objective
 
-T000-R3 stopped safely because its sole authentication attempt returned no
-child exit/output markers. Authentication, remote emptiness, and publication
-remain unproven. Perform one bounded retry through a fixed repository-local
-Python controller using safe argv only; conditionally run one empty-remote check
-and one atomic non-forced push; record durable evidence and stop.
+Publish the reviewed R4 boundary, create exactly one pull request into `main`,
+run the repository's real CI, and establish active hosted enforcement that
+requires pull requests, blocks force-push and deletion, has no bypass actor,
+and binds the actual passing CI check. Record evidence and stop without merging.
 
-## Authorized writes and network budget
+## Authorized writes and hosted actions
 
-- Repository-local Git metadata needed to create `fix/t000-r4-safe-probe`
-- Fixed controller and temporary evidence files only under
-  `/data3/xc/code-verifier-triage/.git/t000-r4-*`
-- One GitHub SSH authentication retry, at most one `git ls-remote origin`, and,
-  only after both exact gates pass, one non-forced atomic push
-- `PROGRESS.md`, tail append only, and one local T000-R4 handback commit
+- Repository-local branch metadata needed to create
+  `fix/t000-r5-hosted-controls` from clean `review/t000-r4`
+- Mode-600 temporary evidence only under `.git/t000-r5-*`
+- `PROGRESS.md`, tail append only, and one T000-R5 handback commit
+- The exact non-forced branch publications, unique PR creation, CI observation,
+  and ruleset/branch-protection mutation listed below
+- If neither an official `gh` binary nor an authenticated browser session is
+  available, one reversible project-local installation of the official GitHub
+  CLI under `.git/t000-r5-tools/` as bounded below
 
-No package installation, key/config change, or broader network action is
+No system/global package installation, key/config change, token creation,
+repository content implementation, merge, or broader hosted mutation is
 authorized.
 
-## Mandatory offline preflight
+## Mandatory local preflight
 
-1. Start from clean `review/t000-r3`, create
-   `fix/t000-r4-safe-probe`, record all listed source SHAs, and confirm local
-   `main` remains `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`.
-2. Reverify exact `origin`, repository-local `core.sshCommand`, public-key and
-   known-host fingerprints, and private-key mode 600 without reading private-key
-   content.
-3. Require `/usr/bin/ssh`, `/usr/bin/git`, and GNU `/usr/bin/timeout`.
-   Confirm every `.git/t000-r4-*` output path is absent; never overwrite prior
-   evidence or retry after creation.
-4. Create one fixed
-   `.git/t000-r4-network-probe.py` using only the Python standard library.
-   It accepts no arguments or stdin, has mode 700, uses absolute executable and
-   file paths, and invokes every child with `subprocess.Popen(argv,
-   shell=False, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-   stderr=subprocess.PIPE)`.
-5. The controller must use `communicate(timeout=25)` for authentication and
-   `ls-remote`; include SSH `ConnectTimeout=15`; use a bounded timeout no
-   greater than 60 seconds for the sole push. On timeout it must kill and reap
-   the child, set `timed_out=true`, and never retry.
-6. Run `python -m py_compile` on the controller, record its SHA-256 and
-   permissions, review its fixed argv/refspec constants, and confirm it contains
-   no private-key bytes, credential value, shell invocation, inline Bash,
-   command substitution, `eval`, or user-controlled argument.
-7. Invoke only the fixed controller through GNU timeout. The outer PowerShell/SSH
-   command must contain no `$()`, `$?`, nested quotes carrying shell state,
-   or inline remote logic.
+1. Start from clean `review/t000-r4`; verify its parent is R4 commit
+   `4cfd5cbcf1c9689b1017db549924be10864c8293`, create only
+   `fix/t000-r5-hosted-controls`, and confirm local `main` remains
+   `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`.
+2. Reverify exact origin and repository-local strict SSH command, key/known-host
+   fingerprints, and that the eight already-published remote-tracking refs
+   remain at the R4-reviewed SHAs. Do not contact GitHub during this step.
+3. Verify the R4 execution and review branches do not yet have corresponding
+   remote-tracking refs. Publish only these non-forced refspecs, plus the new PR
+   head at its initial review tip:
+   - `refs/heads/fix/t000-r4-safe-probe:refs/heads/fix/t000-r4-safe-probe`
+   - `refs/heads/review/t000-r4:refs/heads/review/t000-r4`
+   - `refs/heads/fix/t000-r5-hosted-controls:refs/heads/fix/t000-r5-hosted-controls`
+4. Every push must omit force, deletion, tags, mirror, all-branches, and
+   upstream-setting options. Any non-fast-forward or unexpected remote state
+   fails closed.
 
-## Controller evidence contract
+## Administrative-session boundary
 
-For each attempted stage, create separate exclusive mode-600 files under
-`.git/`: `t000-r4-<stage>.stdout`, `.stderr`, and `.rc`. Also create one
-`t000-r4-result.json` and print exactly that single JSON object after all
-children are reaped. Do not include private-key content or arbitrary stderr text
-in JSON; include only stage, child rc, timed_out, byte counts, SHA-256 hashes,
-and exact-match booleans.
+Use only an already-authenticated GitHub browser session or an installed
+official `gh` client whose `gh auth status` proves access to
+`Crushinrain/code-verifier-triage` and sufficient repository-administration
+authority. A deploy key alone is not administrative authority.
 
-Authentication argv is fixed to:
+If `gh` is absent and no authenticated browser session is usable, the Executor
+may download one pinned official GitHub CLI release archive plus its official
+checksum file, verify the archive checksum before extraction, and place only
+the binary under `.git/t000-r5-tools/` with no PATH/profile/package-database
+mutation. Do not use a shell installer, package manager, `sudo`, root, or an
+unverified mirror. Record version, official URLs, and checksum. Installation
+does not authorize login; continue only if pre-existing authentication is then
+proved, otherwise hand back blocked.
 
-- `/usr/bin/ssh`
-- `-i /data3/xc/.ssh/code_verifier_triage_github_ed25519`
-- `-o IdentitiesOnly=yes`
-- `-o UserKnownHostsFile=/data3/xc/code-verifier-triage/.git/github_known_hosts`
-- `-o StrictHostKeyChecking=yes`
-- `-o BatchMode=yes`
-- `-o ConnectTimeout=15`
-- `-T git@github.com`
+- Begin with read-only identity, repository, existing-PR, workflow, and
+  ruleset/protection probes.
+- Never request, accept, print, copy, persist, or place a token/password/cookie
+  in commands, files, logs, the ledger, chat, or Git configuration.
+- Do not start device authorization or create/refresh credentials. If no usable
+  existing administrative session is available, record only non-sensitive
+  status metadata, hand back FAIL/blocked, and stop after the branch publication.
+- Fail closed if the repository identity, default branch, existing PR state, or
+  current protection differs from the expected target.
 
-Authentication succeeds only when the outer controller exits 0, child rc is
-exactly 1, `timed_out=false`, stdout is empty, and stderr bytes exactly equal
-this one newline-terminated line:
-`Hi Crushinrain/code-verifier-triage! You've successfully authenticated, but
-GitHub does not provide shell access.`
+## Unique PR and CI
 
-If any condition differs, write diagnostic metadata, do not run `ls-remote` or
-push, hand back FAIL, and stop.
+1. Prove there is no open PR with head
+   `Crushinrain:fix/t000-r5-hosted-controls` and base `main`; reuse an exact
+   already-existing match only if all identity fields agree, otherwise stop.
+2. Create at most one PR from `fix/t000-r5-hosted-controls` into `main`, with a
+   T000 bootstrap/control title and body that states: no merge is authorized,
+   T001 is not included, and hosted-control evidence is pending.
+3. Observe the PR-triggered `.github/workflows/contracts.yml` run. Record the
+   repository, PR number/URL, base/head refs and SHAs, workflow/run/check URLs,
+   exact check context, conclusion, and timestamps. Never infer a check name
+   from YAML; bind only a context returned by GitHub for this PR commit.
+4. If CI fails or does not produce a stable real check context, do not weaken
+   the workflow or protection. Record the failure and stop.
 
-## Conditional remote-empty check and push
+## Protected-main enforcement
 
-Only after exact authentication success, the same controller may run safe argv
-`/usr/bin/git -C /data3/xc/code-verifier-triage ls-remote origin` once.
-Require child rc 0, `timed_out=false`, and empty stdout; any ref, symbolic ref,
-error, prompt, or timeout stops before push.
+After the real CI context is known, create or update one active ruleset targeting
+only `refs/heads/main`; if rulesets are unavailable, use equivalent classic
+branch protection. The effective hosted state must prove all of:
 
-Only after that exact empty result, run one
-`git push --porcelain --atomic origin` with exactly these eight refspecs:
+- pull requests are required before updates to `main` (zero approving reviews
+  is acceptable for this bootstrap; direct pushes are not)
+- branch deletion and non-fast-forward/force-push are blocked
+- bypass actors are empty and no administrator/repository-role bypass applies
+- the exact successful CI context from this PR is a required status check
 
-- `refs/heads/main:refs/heads/main`
-- `refs/heads/review/t000-initial:refs/heads/review/t000-initial`
-- `refs/heads/fix/t000-r1-controls:refs/heads/fix/t000-r1-controls`
-- `refs/heads/review/t000-r1:refs/heads/review/t000-r1`
-- `refs/heads/fix/t000-r2-github-transport:refs/heads/fix/t000-r2-github-transport`
-- `refs/heads/review/t000-r2:refs/heads/review/t000-r2`
-- `refs/heads/fix/t000-r3-initial-publish:refs/heads/fix/t000-r3-initial-publish`
-- `refs/heads/review/t000-r3:refs/heads/review/t000-r3`
+Do not configure wildcard targets, merge queues, signed-commit requirements,
+deployment gates, code-owner review, or unrelated repository settings. Reread
+the effective hosted configuration after mutation and save only non-sensitive
+JSON/page evidence with rule/ruleset or protection identifiers and enforcement
+fields.
 
-The last two are the minimum additional governance evidence: the R3 failed
-handback and its formal R3 review/R4 authorization. Do not push the new
-`fix/t000-r4-safe-probe` branch because its evidence commit is created only
-after the network sequence.
+## Final ledger, commit, and PR-head update
+
+1. Append one `Batch T000-R5 - hosted controls handback` block with local source
+   SHAs, non-forced push results, administrative-session status without secrets,
+   PR identity, final head SHA, CI run/check identity and conclusion, effective
+   protected-main fields, isolation checks, and any fail-closed reason.
+2. Create exactly one local T000-R5 commit on
+   `fix/t000-r5-hosted-controls`; do not alter implementation, contracts,
+   approvals, raw starter evidence, or Claims.
+3. If hosted controls succeeded, non-force push only
+   `refs/heads/fix/t000-r5-hosted-controls:refs/heads/fix/t000-r5-hosted-controls`,
+   wait for the PR's CI on this final commit, and require the bound check to pass
+   under the active protection. If the handback is blocked, the same single
+   non-force branch update is allowed solely to preserve the negative evidence.
+4. Verify PR head equals the handback commit, the PR remains open, `main` is
+   unchanged, and the effective protected-main configuration remains active.
+   Set `Status: HANDED BACK FOR REVIEW` and stop for a fresh Reviewer.
 
 ## Forbidden actions
 
-- Inline Bash/PowerShell capture logic, shell=True, nested command substitution,
-  dynamic argv/refspecs, a credential prompt, reading/logging the private key, or
-  accepting a new host key
-- Any retry beyond the one controller invocation; a second auth, `ls-remote`,
-  or push; fetch, pull, clone, merge, rebase, reset, force, deletion, tags,
-  upstream setup, mirror, or all-branches push
-- GitHub API/CLI mutation, PR, ruleset, branch protection, repository settings,
-  Deploy-key change, global/root mutation, installation, implementation/raw
-  evidence/contracts/approvals/Claims, T001/T005, Gate 0, GPU/model/data/Docker
+- Merge, auto-merge, close/reopen an unrelated PR, direct or force push to
+  `main`, deletion, tag, release, fetch/pull/rebase/reset, or branch-history
+  rewrite
+- Credential/device-login flow, token/cookie output, deploy-key change, SSH or
+  Git config change, system/global installation, or any unverified CLI/script
+- Workflow/code/schema/contract/approval/Claim edits; T001/T005; Gate 0;
+  GPU/model/data/Docker; candidate execution; final access; external release
 
-## Acceptance and handback
+## Acceptance
 
-- Offline controller validation and every child result satisfy the evidence
-  contract; the sole push succeeds atomically for all and only eight listed refs.
-- Local `main`, parent repository, keys/config, and prohibited paths remain
-  unchanged. Hosted ruleset/branch protection remains unverified.
-- Append one `Batch T000-R4 - safe probe handback` block with controller hash,
-  exact JSON, result-file hashes/sizes/rc values, source SHAs, push porcelain
-  evidence or fail-closed reason, and all scope checks. Never append private-key
-  or unexpected raw stderr content.
-- Create one local commit on `fix/t000-r4-safe-probe`, set
-  `Status: HANDED BACK FOR REVIEW`, and stop for a fresh Reviewer. No further
-  authentication, remote access, hosted settings, T001, or Gate 0 action is
-  authorized.
+- The exact R4 execution/review branches and single R5 PR head are published
+  non-forced; exactly one open PR targets `main`.
+- The final PR-head commit has the repository's real contracts CI check passing.
+- Hosted evidence proves active PR-required, no-bypass, no-force, no-delete,
+  exact-required-check enforcement on `main`.
+- Local/remote `main`, parent repository, keys/config, implementation, frozen
+  content, approvals, Claims, and prohibited resources remain unchanged.
+- One bounded handback commit records evidence; the PR stays open and unmerged.
