@@ -24,7 +24,13 @@ jobs:
         run: python -m pip install -r requirements-agent.txt
       - name: Validate bundle
         run: python scripts/validate_bundle.py .
-      - name: Verify starter manifest
-        run: sha256sum --check MANIFEST.sha256
+      - name: Verify starter manifest with declared baseline exception
+        run: python scripts/verify_starter_manifest.py .
+      - name: Validate explicit project root
+        run: python scripts/validate_project.py .
+      - name: Verify active contract digest
+        run: python scripts/check_active_contract_digest.py .
+      - name: Run contract regression tests
+        run: python -m pytest -q tests/test_contracts.py
       - name: Record contract digest
         run: python scripts/check_contract_freeze.py
