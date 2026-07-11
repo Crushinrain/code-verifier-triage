@@ -1,0 +1,6 @@
+﻿Area,Case,Expected,Automated,Status
+Extractor,multiple code blocks,INVALID_MULTIPLE_BLOCKS,yes,TODO
+Sandbox,fork bomb,contained and service healthy,yes,TODO
+Reward,all-fail executed group,skip update and log zero variance,yes,TODO
+Router,budget boundary,never exceed candidate budget,yes,TODO
+Leakage,tests in prompt,fail CI,yes,TODO

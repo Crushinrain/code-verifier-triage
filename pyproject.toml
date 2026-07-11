@@ -1,0 +1,15 @@
+[project]
+name = "code-verifier-triage"
+version = "0.0.0"
+description = "Governed research scaffold for risk-calibrated selective verification in code RL."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "PyYAML>=6.0",
+  "jsonschema>=4.20",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+]

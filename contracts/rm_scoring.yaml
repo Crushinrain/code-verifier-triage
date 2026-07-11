@@ -1,0 +1,36 @@
+version: 1
+model: LARK-Lab/CodeScaler-1.7B
+adapter: src/scoring/codescaler_adapter.py
+input_contract:
+  mode: FREEZE_AFTER_UPSTREAM_PARITY_AUDIT
+  candidate_modes:
+  - upstream_exact
+  - question_plus_extracted_code
+  archive_actual_rendered_text: true
+  chat_template_hash: FILL_AFTER_GATE0
+  tokenizer_revision: FILL_AFTER_GATE0
+length:
+  max_length: 4096
+  truncation_side: AUDIT_AND_FREEZE
+  silent_truncation_forbidden: true
+  fields:
+  - rm_input_tokens
+  - rm_truncated
+  - code_tail_visible
+  - actual_rm_input_hash
+output:
+  raw_score: true
+  transformed_score: softplus(raw_score) for valid code; 0 for invalid/empty code
+  repeatability_tolerance_abs: 1.0e-05
+batching:
+  dtype: bfloat16
+  initial_batch_size_per_gpu: 8
+  autotune_with_oom_backoff: true
+required_tests:
+- same text repeated score
+- batch-order invariance
+- single vs batch parity
+- truncation boundary
+- template parity
+- invalid code mapping
+- NaN/Inf rejection

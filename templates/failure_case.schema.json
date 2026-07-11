@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CodeVerifier-Triage Failure Case",
+  "type": "object",
+  "required": [
+    "problem_id", "group_id", "candidate_ids", "rm_scores",
+    "risk_score", "execution_statuses", "taxonomy", "review_status"
+  ],
+  "properties": {
+    "problem_id": {"type": "string"},
+    "group_id": {"type": "string"},
+    "candidate_ids": {"type": "array", "items": {"type": "string"}},
+    "rm_scores": {"type": "array", "items": {"type": "number"}},
+    "risk_score": {"type": "number", "minimum": 0, "maximum": 1},
+    "route_decision": {"enum": ["RM", "EXECUTION", "AUDIT"]},
+    "execution_statuses": {"type": "array", "items": {"type": "string"}},
+    "optimization_fp": {"type": ["boolean", "null"]},
+    "avoidable_selection_fp": {"type": ["boolean", "null"]},
+    "rm_truncated": {"type": "boolean"},
+    "taxonomy": {"type": "array", "items": {"type": "string"}},
+    "review_notes": {"type": "string"},
+    "review_status": {"enum": ["AUTO", "AGENT_REVIEWED", "HUMAN_ADJUDICATED"]}
+  }
+}

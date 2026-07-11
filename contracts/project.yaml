@@ -1,0 +1,37 @@
+project_id: code-verifier-triage
+project_name: CodeVerifier-Triage
+chinese_name: 面向策略漂移的风险校准选择性验证代码强化学习
+contract_version: 1.0.0
+contract_date: '2026-07-11'
+primary_goal: 完成可投 LLM/Code LLM/RLVR/Reward Model 算法岗的强简历项目
+research_goal: 研究有限执行预算下，策略漂移中的选择性 Oracle Feedback 与奖励模型高分错误控制
+hardware:
+  gpus: 4
+  gpu_model: NVIDIA RTX 4090D
+  vram_per_gpu_gb: 24
+  nvlink_assumed: false
+  preferred_os:
+  - Ubuntu 22.04 LTS
+  - Ubuntu 24.04 LTS
+default_models:
+  policy: Qwen/Qwen3-1.7B-Base
+  reward_model: LARK-Lab/CodeScaler-1.7B
+  confirmation_policy: Qwen/Qwen3-4B-Base
+hard_constraints:
+- 未经人工 Gate 批准，Agent 不得启动 GPU 训练。
+- 不得在宿主机或仅依赖 Python subprocess 的环境中执行未受信任代码。
+- 不得使用 final test 调阈值、选择 checkpoint、选择 seed 或修改协议。
+- 所有方法对照必须匹配问题曝光、候选生成数、token 上限和执行预算。
+- 所有 claim 必须链接到 run manifest、原始结果和统计报告。
+- 任何冻结 contract 的修改必须提交 change request 并形成新版本。
+success_definition:
+  resume_mvp: 离线危险错误审计 + 风险覆盖曲线 + 固定预算 BoN 优于随机与 margin baseline
+  strong_resume: 完成 1.7B 在线 RL，3 个独立训练 seed，在固定执行预算下优于 RM-only 与 random hybrid
+  paper_extension: 证明静态 router 的 policy-shift 失配并提出带随机审计和选择偏差修正的动态方法
+non_goals_mvp:
+- 从零训练 CodeScaler
+- 训练 8B/14B policy
+- 在线同步更新 policy、RM、router 三个系统
+- 生成或共同训练 unit tester
+- 在同一 group 内混用二值执行奖励与 RM 标量奖励
+- 只依赖全局 AUROC 证明方法有效

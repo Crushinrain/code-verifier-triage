@@ -1,0 +1,34 @@
+schema_version: 1
+run_id: FILL
+task_id: FILL
+protocol_version: FILL
+git:
+  sha: FILL
+  dirty: false
+  diff_hash: null
+upstreams_lock_hash: FILL
+contracts:
+  generation: FILL
+  extraction: FILL
+  execution: FILL
+  rm_scoring: FILL
+  routing: FILL
+  reward: FILL
+  evaluation: FILL
+data:
+  manifest_path: FILL
+  manifest_hash: FILL
+models:
+  policy: {id: FILL, revision: FILL}
+  reward_model: {id: FILL, revision: FILL}
+seeds:
+  training: null
+  generation: null
+  bootstrap: null
+resources:
+  requested_gpu_hours: 0
+  requested_cpu_hours: 0
+approval:
+  required: false
+  key: null
+outputs: []

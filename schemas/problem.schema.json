@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProblemRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "problem_id",
+    "problem_hash",
+    "source",
+    "split",
+    "problem_text",
+    "test_suite_hash"
+  ],
+  "properties": {
+    "problem_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "problem_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "split": {
+      "enum": [
+        "risk_train",
+        "risk_calibration",
+        "risk_dev",
+        "rl_train",
+        "rl_dev",
+        "final_test"
+      ]
+    },
+    "problem_text": {
+      "type": "string"
+    },
+    "starter_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "difficulty": {
+      "type": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "test_suite_hash": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object"
+    }
+  }
+}

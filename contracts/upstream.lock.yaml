@@ -1,0 +1,42 @@
+lock_generated_at: '2026-07-11'
+rule: Gate 0 克隆后必须用完整 SHA、模型/数据 revision 与容器 digest 替换所有待解析项；不得只写 main。
+repositories:
+- name: CodeScaler
+  url: https://github.com/LARK-AI-Lab/CodeScaler
+  revision: e1717833cf88a6bac3630af697f899e49493e8f5
+  role: 主基线、vendored veRL 与 reward manager
+  license_status: 仓库根目录未在 GitHub 页面显示统一 LICENSE；复制/分发前须人工核验。优先使用补丁与适配层。
+- name: RewardUQ
+  url: https://github.com/lasgroup/rewarduq
+  revision: 7224a1d35849e608fbe92a3bf2292028d8b39787
+  role: UQ baseline/feature provider，不是 MVP 核心依赖
+  license_status: Apache-2.0
+- name: SandboxFusion
+  url: https://github.com/bytedance/SandboxFusion
+  revision: add46a79a614f84a64f80b4b59002fefeb4b7607
+  role: 隔离执行服务候选实现
+  license_status: Apache-2.0
+models:
+- id: Qwen/Qwen3-1.7B-Base
+  revision: RESOLVE_WITH_HF_API_AT_GATE0
+  license: VERIFY_MODEL_CARD
+- id: LARK-Lab/CodeScaler-1.7B
+  revision: RESOLVE_WITH_HF_API_AT_GATE0
+  license: MIT per model card
+- id: Qwen/Qwen3-4B-Base
+  revision: RESOLVE_ONLY_IF_CONFIRMATION_RUN
+  license: VERIFY_MODEL_CARD
+datasets:
+- id: agentica-org/DeepCoder-Preview-Dataset
+  revision: e0c06632fc6cda32a81827a63308505fc0a67abb
+  role: 主训练问题与可执行测试
+  license: VERIFY_DATASET_CARD_AND_SOURCE_SUBSETS
+- id: LARK-Lab/CodeScalerPair-51K
+  revision: RESOLVE_WITH_HF_API_AT_GATE0
+  role: 上游偏好数据分析/可选 hard-negative 初始化；不得作为唯一校准集
+  license: MIT per dataset card
+containers:
+- name: sandboxfusion-server
+  image: BUILD_FROM_PINNED_SOURCE
+  digest: FILL_AFTER_LOCAL_BUILD
+  rule: 禁止只记录 tag；必须记录 sha256 digest 与 Dockerfile hash。

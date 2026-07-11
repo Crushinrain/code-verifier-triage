@@ -1,0 +1,48 @@
+version: 1
+metric_definitions:
+  sample_accuracy: passed samples / generated samples
+  task_pass_any_at_k: at least one of k samples passes
+  task_pass_all_at_k: all k samples pass
+  optimization_fp_rate: top RM candidate fails / groups
+  avoidable_selection_error: top RM fails and another candidate passes / groups
+  selection_regret: max_i e_i - e_top_rm
+  effective_gradient_group_ratio: groups with non-zero final reward variance / generated groups
+offline_primary:
+- PR-AUC
+- recall_at_execution_budget
+- optimization_fp_rate
+- avoidable_selection_error
+- risk_coverage_curve
+- AURC
+- eAURC
+- BoN accuracy at fixed execution budget
+online_primary:
+- sample_accuracy
+- task_pass_any_at_4
+- task_pass_any_at_8
+diagnostics:
+- RM-execution disagreement
+- executed group fraction
+- random audit fraction
+- zero-variance fraction
+- effective-gradient ratio
+- KL
+- response/code length
+- invalid rate
+- RM truncation rate
+- router calibration by checkpoint and risk decile
+costs:
+- candidate executions
+- CPU core-seconds
+- RM GPU-seconds
+- policy GPU-seconds
+- wall-clock p50/p95
+- timeouts
+statistics:
+  resampling_unit: problem
+  bootstrap_replicates: 10000
+  confidence_level: 0.95
+  independent_training_seeds_min: 3
+  decoding_seeds_not_counted_as_training_seeds: true
+  final_test_runs: 1
+checkpoint_selection: pre-registered dev metric or fixed final step; final test never selects checkpoint

@@ -1,0 +1,38 @@
+version: 1
+routing_unit: whole group
+group_size_fixed: 4
+budget_unit: candidate executions
+execute_all_candidates_in_selected_group: true
+default_execution_fraction: 0.25
+budget_sweep:
+- 0.1
+- 0.25
+- 0.5
+- 1.0
+random_audit:
+  minimum_fraction_of_unselected_groups: 0.1
+  stratify_by:
+  - risk_decile
+  - source
+  - response_length_bin
+  - policy_checkpoint
+  record_propensity: true
+selection:
+  corrective_queue_score: calibrated P(avoidable_selection_fp)
+  audit_queue_score: calibrated P(optimization_fp)
+  tie_breaker: stable problem_hash
+  threshold: derived from budget, never tuned on final test
+propensity_fields:
+- route_probability
+- route_reason
+- risk_decile
+- audit_flag
+- router_revision
+estimation:
+  ipw_required_for_population_risk: true
+  clip_inverse_propensity_at: 20.0
+  report_unweighted_selected_slice_too: true
+router_update:
+  mvp: freeze during one training window; recalibrate between windows
+  paper: periodic retraining with propensity-weighted audited labels
+  synchronous_per_step_update_forbidden: true

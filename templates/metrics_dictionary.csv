@@ -1,0 +1,7 @@
+﻿Metric,Level,Formula,Primary/Diagnostic,Direction,Notes
+optimization_fp_rate,group,top RM fails / groups,Primary,down,含全错组
+avoidable_selection_error,group,top RM fails and any other passes / groups,Primary,down,BoN 可纠正错误
+recall_at_execution_budget,group,caught dangerous FP / all dangerous FP,Primary,up,预算按候选执行数
+effective_gradient_group_ratio,train,non-zero reward variance groups / generated groups,Diagnostic,up,防止零方差浪费
+sample_accuracy,candidate,passes / samples,Primary,up,test-suite success
+task_pass_any_at_4,problem,at least one pass among 4,Primary,up,不要与 pass-all 混淆

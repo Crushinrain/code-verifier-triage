@@ -1,0 +1,29 @@
+version: 1
+threat_model:
+- policy 生成恶意或资源耗尽代码
+- 测试/数据中包含恶意 payload
+- 容器逃逸或宿主信息泄露
+- 日志泄露 token/密钥/隐藏测试
+- stdout/stderr/文件写入造成磁盘耗尽
+- 执行服务故障被误标为错误答案
+mandatory_controls:
+- 独立 Linux 执行服务或 VM；WSL2 不作为安全边界
+- 无网络
+- 非 root
+- 只读根文件系统
+- tmpfs 工作目录
+- seccomp/AppArmor 或等效限制
+- cgroups v2 CPU/内存/PID/swap 限制
+- wall-time timeout 并杀死整个进程树
+- stdout/stderr/文件大小限制
+- 不挂载密钥与项目源码
+- 执行环境变量白名单
+- 镜像 digest 锁定
+- 审计日志脱敏
+acceptance:
+  all_adversarial_fixtures_contained: true
+  no_host_file_read: true
+  no_network_egress: true
+  service_recovers_after_timeout_or_oom: true
+  known_solution_consistency: 1.0
+incident_policy: 出现疑似逃逸、宿主异常、连续 OOM 或不明进程时立即停止服务、隔离节点、保留日志并轮换凭据。

@@ -1,0 +1,41 @@
+schema_version: 1
+hardware_expectation:
+  gpu_count: 4
+  gpu_model: NVIDIA RTX 4090D
+  gpu_memory_gb_each: 24
+  verify_at_runtime: true
+models:
+  policy: Qwen/Qwen3-1.7B-Base
+  reward_model: FILL_CODE_SCALER_1P7B_MODEL_ID
+lengths:
+  prompt: 4096
+  response: 2048
+rollout:
+  group_size: 4
+  temperature: 0.6
+  top_p: 0.95
+training:
+  global_prompt_batch: 16
+  micro_batch_per_gpu: 1
+  gradient_checkpointing: true
+  adaptation: PROFILE_FULL_FSDP_THEN_LORA_FALLBACK
+resource_schedule:
+  mode: sequential_components
+  phases:
+    - policy_rollout_all_gpus
+    - unload_rollout
+    - reward_model_scoring
+    - cpu_sandbox_execution
+    - policy_update_all_gpus
+memory_fallback_order:
+  - reduce_rollout_concurrency
+  - reduce_micro_batch
+  - reduce_response_length
+  - enable_gradient_checkpointing
+  - cpu_offload
+  - lora_policy
+  - reduce_group_size
+monitor:
+  gpu_peak_memory: true
+  cpu_queue: true
+  disk_free: true

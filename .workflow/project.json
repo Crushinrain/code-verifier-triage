@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "project_id": "code-verifier-triage",
+  "documents": {
+    "plan": "PLAN.md",
+    "handoff": "HANDOFF.md",
+    "ledger": "PROGRESS.md",
+    "review_protocol": "REVIEW_PROTOCOL.md"
+  },
+  "reviewer_extra_writable": [
+    "docs",
+    "notes"
+  ],
+  "gated_actions": [],
+  "evidence": {
+    "manifest_required_for": [],
+    "provenance_schema": null
+  },
+  "features": {
+    "claims": false,
+    "resume_mapping": false
+  }
+}

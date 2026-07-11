@@ -1,0 +1,33 @@
+version: 1
+unit_of_split: problem_hash
+hash_definition: sha256(normalized_problem_text + source + canonical_starter_code)
+deduplication:
+  exact_hash: true
+  normalized_text_hash: true
+  near_duplicate_review: MinHash/embedding 候选仅用于人工审查，不自动跨 split 移动
+primary_sources:
+- taco
+- primeintellect
+- lcbv5
+risk_dataset:
+  train_fraction: 0.6
+  calibration_fraction: 0.2
+  dev_fraction: 0.2
+  stratify_by:
+  - source
+  - difficulty_if_available
+  row_random_split_forbidden: true
+rl:
+  train_problem_registry: artifacts/registries/rl_train.parquet
+  dev_problem_registry: artifacts/registries/rl_dev.parquet
+  final_problem_registry: artifacts/registries/final_test.parquet
+  final_test_access: sealed_until_gate6
+temporal_external_test:
+  dataset: LiveCodeBench
+  release: PIN_AT_GATE0
+  note: 只能称时间扩展评测；不能保证对预训练语料绝对无污染。
+leakage_rules:
+- 同一 problem_hash 的所有候选、pair、checkpoint 输出必须位于同一 split。
+- 测试用例不得进入 policy prompt、RM/router feature 或日志中的可见 prompt 字段。
+- final test 不得参与 router 校准、阈值选择、feature 选择或 checkpoint 选择。
+- 任何上游 benchmark 重叠必须在 overlap_report.json 中记录。

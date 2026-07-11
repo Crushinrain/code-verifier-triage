@@ -1,0 +1,16 @@
+﻿ID,Title,URL,Use
+R1,CodeScaler paper,https://arxiv.org/abs/2602.17684,execution-free code RM、公开结果、失败分析与训练设置
+R2,CodeScaler repository,https://github.com/LARK-AI-Lab/CodeScaler,代码、配置、1.7B/4B/8B 模型入口
+R3,CodeScaler-1.7B model card,https://huggingface.co/LARK-Lab/CodeScaler-1.7B,模型许可、基座与使用方式
+R4,CodeScalerPair-51K,https://huggingface.co/datasets/LARK-Lab/CodeScalerPair-51K,上游偏好数据
+R5,RewardUQ,https://github.com/lasgroup/rewarduq,多头、LoRA、MC Dropout、Bayesian head UQ baseline
+R6,RewardUQ paper,https://arxiv.org/abs/2602.24040,奖励模型不确定性方法
+R7,SandboxFusion,https://github.com/bytedance/SandboxFusion,隔离代码执行服务
+R8,DeepCoder Preview Dataset,https://huggingface.co/datasets/agentica-org/DeepCoder-Preview-Dataset,24K 训练问题及测试
+R9,"Delay, Plateau, or Collapse",https://arxiv.org/abs/2605.02909,系统性 verifier false positive 对 RLVR 的影响
+R10,LLMs Gaming Verifiers,https://arxiv.org/abs/2604.15149,RLVR reward hacking 与 verifier 漏洞
+R11,RL with Verifiable yet Noisy Rewards,https://arxiv.org/abs/2510.00915,不完美 verifier 的噪声建模与校正
+R12,Adaptive Generate-Rank-Verify,https://arxiv.org/abs/2605.17609,廉价分数 + 昂贵 verifier 的推理时选择性验证先行工作
+R13,CURE,https://github.com/Gen-Verse/CURE,Coder/Unit Tester 协同 RL，项目命名与范围需避开
+R14,A Unifying Lens on Reward Uncertainty,https://arxiv.org/abs/2606.09073,LCB/悲观奖励的统一视角
+R15,Themis,https://arxiv.org/abs/2605.00754,多语言多标准代码 RM，后期跨 RM 验证候选

@@ -1,0 +1,13 @@
+﻿周,主阶段,核心产物,预计GPU占用,退出判断
+1,Gate0 环境/协议,上游锁、环境、数据注册表,低,上游无法运行或许可证不可接受
+2,Gate0 安全/成本,沙箱验收、RM/执行成本、提取一致性,中,沙箱不安全或协议不可冻结
+3,Gate1 新鲜语料,500×4 全执行 corpus、FP prevalence,中,FP 太少或主要是伪影
+4,Gate1/2 扩数据与简单模型,6K–10K 候选、margin/logistic/GBDT,中,简单模型无预测力
+5,Gate2 高级模型/校准,risk–coverage、shift、RewardUQ baseline,中,不优于 margin/random
+6,Gate3 BoN/成本,固定预算 Pareto,低到中,无选择收益
+7,Gate4 RL 接入,hybrid reward、golden tests,低,reward no-op/预算混杂
+8,Gate4 smoke,20–30 step 四卡 smoke,高,不稳定或 router 退化
+9,Gate5 pilot 1,P1/P2/P4/P6 seed1,高,能力明显退化
+10,Gate5 pilot 2,seed2、漂移分析,高,方向不一致
+11,Gate6 final,三 seed 核心 runs,高,按预注册处理，不换 seed
+12,最终评测/报告,统计、简历、开源包,中,Claim 只按证据写

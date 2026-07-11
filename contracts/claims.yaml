@@ -1,0 +1,45 @@
+version: 1
+statuses:
+- NOT_TESTED
+- SUPPORTED_INTERNAL
+- SUPPORTED_FINAL
+- REJECTED
+- DO_NOT_CLAIM
+claims:
+- id: CLAIM-RISK-001
+  text: CodeScaler 在目标 policy 分布上存在可预测的危险高分错误。
+  required_gate: 2
+  required_evidence:
+  - fresh on-policy executed corpus
+  - problem-level split
+  - PR-AUC/recall@budget
+  - shortcut ablations
+- id: CLAIM-BON-001
+  text: 选择性验证在固定执行预算下优于随机与 margin routing。
+  required_gate: 3
+  required_evidence:
+  - matched execution budget
+  - paired problem bootstrap
+  - risk-coverage and BoN
+- id: CLAIM-RL-001
+  text: Drift-aware hybrid feedback 改善在线代码 RL。
+  required_gate: 6
+  required_evidence:
+  - 3 independent training seeds
+  - matched generation/token/execution budgets
+  - final sealed test
+- id: CLAIM-COST-001
+  text: 系统降低 wall-clock 或总体资源成本。
+  required_gate: 6
+  required_evidence:
+  - full pipeline cost audit including RM overhead
+  - same hardware and concurrency
+  - confidence intervals
+  warning: 若本地执行比 RM 更便宜，则必须拒绝该 claim，改用 oracle-budget/reliability 叙事。
+forbidden_without_evidence:
+- 显著提升
+- 证明能避免 reward hacking
+- 保证代码正确
+- 多 seed 稳定（若仅 decoding seed）
+- 10x 加速（不得沿用上游场景数字）
+- 顶会级创新（未经实验与审稿）

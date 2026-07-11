@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CodeVerifier-Triage Metrics Record",
+  "type": "object",
+  "required": ["run_id", "split", "method", "statistical_unit", "metrics"],
+  "properties": {
+    "run_id": {"type": "string"},
+    "split": {"type": "string"},
+    "method": {"type": "string"},
+    "training_seed": {"type": ["integer", "null"]},
+    "generation_seed": {"type": ["integer", "null"]},
+    "statistical_unit": {"enum": ["problem", "group", "candidate", "training_seed"]},
+    "metrics": {"type": "object"},
+    "confidence_intervals": {"type": "object"},
+    "cost": {"type": "object"},
+    "slices": {"type": "object"},
+    "artifact_hashes": {"type": "object"}
+  }
+}

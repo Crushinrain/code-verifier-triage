@@ -1,0 +1,50 @@
+version: 1
+backend: SandboxFusion or equivalent isolated Linux service
+endpoint: http://127.0.0.1:8080
+language: python
+resource_limits:
+  wall_time_seconds: 10
+  cpu_time_seconds: 8
+  memory_mb: 1024
+  pids: 64
+  file_size_mb: 16
+  stdout_bytes: 262144
+  stderr_bytes: 262144
+  network: disabled
+  root_filesystem: read_only
+  workdir: tmpfs
+  run_as_root: false
+status_enum:
+- PASS
+- WRONG_ANSWER
+- COMPILE_ERROR
+- RUNTIME_ERROR
+- TIME_LIMIT
+- MEMORY_LIMIT
+- OUTPUT_LIMIT
+- INVALID_CODE
+- SANDBOX_ERROR
+- INFRA_ERROR
+oracle_semantics:
+  train_suite_pass: 通过 RL 训练所配置的测试子集；仅作为训练信号
+  audit_suite_pass: 通过未用于该阶段 reward 的审计测试；用于检测过拟合/测试漏洞
+  final_suite_pass: 通过冻结 final evaluator；用于最终报告
+  claim_rule: 统一称 test-suite success，不把有限测试通过写成语义正确性证明。
+cache:
+  key: sha256(language + extracted_code + test_suite_hash + image_digest + limit_config_hash)
+  cache_pass_and_deterministic_failures: true
+  infra_error_cache_forbidden: true
+  timeout_repeat_once: true
+safety_acceptance_tests:
+- infinite loop
+- fork bomb
+- memory bomb
+- huge stdout
+- disk fill
+- network access
+- read /proc and host paths
+- subprocess tree
+- signal abuse
+- deep recursion
+- long sleep
+health_rule: INFRA_ERROR 不得映射为 reward=0；重试或从统计与训练中剔除并报告。

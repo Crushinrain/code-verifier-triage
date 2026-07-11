@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CandidateRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "policy_revision",
+    "problem_id",
+    "group_id",
+    "candidate_id",
+    "raw_response",
+    "extraction_status",
+    "generation_seed"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policy_revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "problem_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "group_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "raw_response": {
+      "type": "string"
+    },
+    "extracted_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "extraction_status": {
+      "type": "string",
+      "minLength": 1
+    },
+    "prompt_tokens": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "response_tokens": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "generation_seed": {
+      "type": "integer"
+    },
+    "generation_config_hash": {
+      "type": "string",
+      "minLength": 1
+    },
+    "prompt_hash": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string"
+    }
+  }
+}

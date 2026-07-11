@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GroupRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "group_id",
+    "problem_id",
+    "candidate_ids",
+    "rm_scores",
+    "top_candidate_id"
+  ],
+  "properties": {
+    "group_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "problem_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 2
+    },
+    "rm_scores": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "top_candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "optimization_fp": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "avoidable_selection_fp": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "mixed_outcome": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "num_pass": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "feature_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "label_version": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

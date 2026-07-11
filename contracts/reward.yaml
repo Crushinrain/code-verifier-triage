@@ -1,0 +1,27 @@
+version: 1
+mvp_group_level_hybrid:
+  executed_group: binary test-suite result e_i
+  non_executed_group: CodeScaler softplus score for valid code, else 0
+  within_group_mixed_reward_types: false
+uniform_execution_group:
+  behavior: skip policy update for that group
+  log_fields:
+  - all_pass
+  - all_fail
+  - execution_zero_variance
+  lexicographic_tie_break: ablation only, not MVP default
+advantage:
+  algorithm: GRPO group normalization
+  golden_test: routing/reward change must cause expected non-constant advantage changes on a fixed synthetic
+    batch
+  single_reward_fallback: exactly reproduce upstream behavior when router disabled
+group_filtering:
+  upstream_dynamic_filter_default: false
+  reason: 路由会改变零方差率；动态重采样会改变问题曝光与生成预算，造成对照混杂。
+  if_enabled_later: 匹配 total generated candidates、tokens、resample count，并单独报告。
+kl:
+  gate0_profiles:
+  - repo_faithful_kl0
+  - paper_consistent_single_kl_mechanism
+  double_count_forbidden: true
+  freeze_after_dev_pilot: true

@@ -1,0 +1,29 @@
+task_id,gate,title,owner_role,depends_on,human_approval,primary_output,status
+P-1-T01,-1,System inventory,Protocol Agent,,no,reports/gate0/system,READY
+P-1-T02,-1,Upstream and license lock,Research Agent,P-1-T01,yes,upstream/LOCK.yaml,BLOCKED
+P-1-T03,-1,Sandbox security acceptance,Sandbox Agent,P-1-T01,yes,reports/gate0/sandbox_security.md,BLOCKED
+P0-T01,0,CodeScaler scoring reproduction,RM Agent,P-1-T02,no,reports/gate0/codescaler_repro.json,BLOCKED
+P0-T02,0,Unified extraction golden tests,Protocol Agent,P0-T01,no,reports/gate0/extraction_parity.json,BLOCKED
+P0-T03,0,Truncation audit,RM Agent,P0-T01,no,reports/gate0/truncation_audit.md,BLOCKED
+P0-T04,0,KL small comparison,RL Agent,P0-T01,yes,reports/gate0/kl_decision.md,BLOCKED
+P0-T05,0,Cost audit,Evaluation Agent,P-1-T03,yes,reports/gate0/cost_audit.md,BLOCKED
+P0-T06,0,Gate 0 independent review,Reviewer Agent,P0-T02|P0-T03|P0-T04|P0-T05,yes,reports/gate0/gate0_report.md,BLOCKED
+P1-T01,1,Generate 500x4 fresh rollouts,Data Agent,P0-T06,yes,data/raw/pilot_manifest.json,BLOCKED
+P1-T02,1,Execute and cache all pilot candidates,Data Agent,P1-T01,yes,data/processed/pilot_execution.parquet,BLOCKED
+P1-T03,1,Dangerous FP taxonomy,Evaluation Agent,P1-T02,no,reports/gate1/failure_audit.md,BLOCKED
+P1-T04,1,Gate 1 independent review,Reviewer Agent,P1-T03,yes,reports/gate1/gate1_report.md,BLOCKED
+P2-T01,2,Problem-level split,Protocol Agent,P1-T04,yes,contracts/data_split.lock.json,BLOCKED
+P2-T02,2,Features v1,Risk Agent,P2-T01,no,data/processed/risk_features_v1.parquet,BLOCKED
+P2-T03,2,Simple risk baselines,Risk Agent,P2-T02,no,reports/gate2/simple_baselines.md,BLOCKED
+P2-T04,2,Calibration,Risk Agent,P2-T03,no,reports/gate2/calibration.md,BLOCKED
+P2-T05,2,Risk coverage evaluation,Evaluation Agent,P2-T04,no,reports/gate2/risk_coverage.md,BLOCKED
+P2-T06,2,RewardUQ baseline,Risk Agent,P2-T02,no,reports/gate2/rewarduq.md,BLOCKED
+P2-T07,3,Best-of-N routing,Evaluation Agent,P2-T05|P2-T06,yes,reports/gate3/bon.md,BLOCKED
+P3-T01,4,Hybrid reward adapter,RL Agent,P2-T07,yes,src/rewards/hybrid_group_reward.py,BLOCKED
+P3-T02,4,Reward and advantage tests,RL Agent,P3-T01,no,reports/gate4/advantage_tests.json,BLOCKED
+P3-T03,4,20-30 step RL smoke,RL Agent,P3-T02,yes,reports/gate4/rl_smoke.md,BLOCKED
+P4-T01,5,Two-seed pilot,RL Agent,P3-T03,yes,reports/gate5/pilot.md,BLOCKED
+P5-T01,6,Final protocol lock,Protocol Agent,P4-T01,yes,protocol.lock.json,BLOCKED
+P5-T02,6,Three-seed final training,RL Agent,P5-T01,yes,reports/final/training_runs.md,BLOCKED
+P5-T03,6,Final evaluation,Evaluation Agent,P5-T02,yes,reports/final/evaluation.md,BLOCKED
+P5-T04,6,Claim review,Reviewer Agent,P5-T03,yes,planning/CLAIMS.yaml,BLOCKED

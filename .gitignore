@@ -1,0 +1,13 @@
+# models, datasets and generated artifacts
+artifacts/
+runs/
+outputs/
+checkpoints/
+*.parquet
+*.safetensors
+*.pt
+*.bin
+.env
+__pycache__/
+.pytest_cache/
+.wandb/

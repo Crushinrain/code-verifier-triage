@@ -1,0 +1,82 @@
+version: 1
+targets:
+  optimization_fp: top RM candidate fails configured test suite
+  avoidable_selection_fp: top RM candidate fails and at least one other candidate passes
+  mixed_outcome: 0 < number_of_passes < group_size
+recommended_two_head_design:
+  danger_head: P(optimization_fp)
+  utility_head: P(avoidable_selection_fp) or P(mixed_outcome)
+  routing_priority: P(avoidable_selection_fp) for corrective execution
+  monitoring_priority: P(optimization_fp) for audit even when execution gives zero variance
+baseline_order:
+- top1-top2 margin
+- score dispersion
+- logistic regression
+- gradient-boosted trees
+- frozen RM embedding + MLP
+- RewardUQ MLP-head variance
+- group-aware calibrated model
+feature_groups:
+  score:
+  - top1
+  - top2
+  - margin
+  - mean
+  - std
+  - rank_entropy
+  validity:
+  - extract_status
+  - ast_ok
+  - compile_ok
+  - entrypoint_ok
+  length_complexity:
+  - response_tokens
+  - code_tokens
+  - lines
+  - functions
+  - branches
+  - imports
+  truncation:
+  - rm_input_tokens
+  - rm_truncated
+  - code_tail_visible
+  representation:
+  - pooled_hidden_embedding
+  - ood_distance
+  uq_optional:
+  - head_variance
+  - rank_disagreement
+  group_diversity:
+  - code_duplicate_rate
+  - token_similarity
+  - ast_similarity
+forbidden_features:
+- test outputs
+- number of tests passed
+- hidden test text
+- execution status
+- post-route artifacts
+class_imbalance:
+  primary_metrics:
+  - PR-AUC
+  - recall_at_execution_budget
+  - precision_at_k
+  secondary_metrics:
+  - AUROC
+  training_options:
+  - class weights
+  - balanced sampling within train only
+calibration:
+  split: calibration only
+  methods:
+  - Platt scaling
+  - isotonic regression
+  metrics:
+  - Brier score
+  - ECE
+  - reliability diagram
+anti_shortcut_ablations:
+- length-matched subset
+- remove length features
+- source-held-out
+- checkpoint-held-out

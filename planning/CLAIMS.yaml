@@ -1,0 +1,32 @@
+schema_version: 1
+claims:
+  - id: CVT-FP-REDUCTION-001
+    statement: "The method reduces dangerous top-1 false positives at a fixed execution budget."
+    status: PROPOSED
+    baseline: random_hybrid
+    primary_metric: unexecuted_risk_at_fixed_budget
+    required_training_seeds: 3
+    required_ci: paired_problem_bootstrap_95
+    run_ids: []
+    limitations: []
+  - id: CVT-BON-001
+    statement: "The method improves Best-of-N selection at a fixed execution budget."
+    status: PROPOSED
+    baseline: codescaler_top1
+    primary_metric: selection_accuracy_at_fixed_budget
+    run_ids: []
+  - id: CVT-RL-001
+    statement: "The method improves final policy test-suite pass rate."
+    status: PROPOSED
+    baseline: codescaler_rm_only
+    primary_metric: pass_at_1
+    required_training_seeds: 3
+    run_ids: []
+  - id: CVT-COST-001
+    statement: "The method reduces end-to-end verification cost without violating the ability floor."
+    status: PROPOSED
+    prerequisite: EXECUTION_DOMINATES_COST
+    run_ids: []
+  - id: CVT-SEMANTIC-CORRECTNESS-001
+    statement: "Passing the configured tests proves semantic correctness."
+    status: DO_NOT_CLAIM

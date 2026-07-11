@@ -1,0 +1,7 @@
+﻿ID,Risk,Likelihood,Impact,Early Signal,Mitigation,Fallback,Owner,Status
+R-001,本地执行比 RM 更便宜,M,H,Gate0 cost audit,改为 oracle-budget/reliability claim,Risk-Regularized RM,Planner,OPEN
+R-002,危险 FP 数量不足,M,H,Gate1 prevalence,增大温度/中等难题/早期RL输出,停止或转 RM hard-negative repair,DataSteward,OPEN
+R-003,Router 只学代码长度,H,H,长度匹配切片失效,移除长度特征、加入表征/结构特征,使用 margin baseline,Reviewer,OPEN
+R-004,静态 router 被 policy exploit,H,H,低风险审计 FP 上升,随机审计、窗口冻结、重校准,risk penalty/full execution,ExperimentReviewer,OPEN
+R-005,执行组零方差过多,H,H,effective ratio 下降,两头 router 预测 selection/mixed utility,lexicographic ablation或停止,Implementer,OPEN
+R-006,沙箱逃逸/资源耗尽,L,Critical,宿主异常/Xid/磁盘增长,独立VM+cgroups+无网络,隔离节点并停止,SecurityReviewer,OPEN

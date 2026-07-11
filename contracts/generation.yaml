@@ -1,0 +1,35 @@
+version: 1
+policy_model: Qwen/Qwen3-1.7B-Base
+group_size: 4
+sampling:
+  temperature: 0.6
+  top_p: 0.95
+  top_k: 20
+  do_sample: true
+  seed_policy: run_seed + stable_hash(problem_id)
+length:
+  max_prompt_tokens: 4096
+  initial_max_new_tokens: 2048
+  allowed_candidates:
+  - 2048
+  - 3072
+  - 4096
+  cap_hit_rate_threshold: 0.05
+  rule: Gate 0 比较长度饱和与 RM 截断；固定最终上限后所有 arm 一致。
+format:
+  language: python
+  required_output: exactly one fenced Python code block; reasoning may precede it
+  prompt_template_hash: FILL_AFTER_GATE0
+  chat_template_hash: FILL_AFTER_GATE0
+offline_corpus:
+  pilot_prompts: 500
+  target_prompts_min: 1500
+  target_prompts_max: 2500
+  target_candidates: 6000-10000
+  minimum_dangerous_fp_groups: 200
+provenance_required:
+- policy_revision
+- tokenizer_revision
+- generation_config_hash
+- prompt_hash
+- run_id

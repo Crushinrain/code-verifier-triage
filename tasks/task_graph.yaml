@@ -1,0 +1,1526 @@
+version: 1
+policy:
+  one_task_one_commit_or_pr: true
+  agent_cannot_self_approve_gate: true
+  gpu_task_requires_explicit_authorization: true
+  contract_change_requires_change_request: true
+tasks:
+- id: T000
+  title: 初始化仓库、分支保护与目录结构
+  phase: G0-Governance
+  depends_on: []
+  owner_role: Planner
+  estimate_hours: 2
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 从执行包复制 contracts/schemas/templates
+  - 初始化 Git；启用 pre-commit 与 CI
+  - 创建 THIRD_PARTY_NOTICES 与 LICENSE_AUDIT
+  acceptance_criteria:
+  - bundle validator 通过
+  - main 分支禁止 Agent 直接提交
+  - 一次任务对应一个 commit/PR
+  outputs:
+  - README.md
+  - .gitignore
+  - pyproject.toml
+  - THIRD_PARTY_NOTICES.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T001
+  title: 采集主机、GPU、CPU、磁盘与拓扑清单
+  phase: G0-Governance
+  depends_on:
+  - T000
+  owner_role: ExperimentOperator
+  estimate_hours: 2
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 运行 host inventory 命令
+  - 记录 nvidia-smi topo -m
+  - 确认 cgroups v2、Docker 与磁盘文件系统
+  acceptance_criteria:
+  - 生成 machine_inventory.json
+  - 四卡均通过 30 分钟显存与通信 smoke
+  - 磁盘满足最低空间
+  outputs:
+  - artifacts/inventory/machine_inventory.json
+  - reports/gate0/hardware.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T002
+  title: 克隆并锁定上游 revision
+  phase: G0-Governance
+  depends_on:
+  - T000
+  owner_role: DataSteward
+  estimate_hours: 3
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 克隆 CodeScaler/RewardUQ/SandboxFusion
+  - 记录完整 SHA 与 diff 状态
+  - 用 HF API 锁定模型和数据 revision
+  acceptance_criteria:
+  - upstream.lock.yaml 无 main/RESOLVE 占位
+  - 所有 remote URL 与 SHA 可复现
+  - 生成锁文件哈希
+  outputs:
+  - contracts/upstream.lock.yaml
+  - artifacts/provenance/upstream_manifest.json
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T003
+  title: 许可证与可分发边界审计
+  phase: G0-Governance
+  depends_on:
+  - T002
+  owner_role: Reviewer
+  estimate_hours: 3
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 核验仓库、模型、数据及其来源子集许可证
+  - 明确复制源码、发布补丁、发布模型/数据的边界
+  acceptance_criteria:
+  - 每个依赖有 license_status 与证据 URL
+  - CodeScaler 根仓许可证不明时只发布适配层/补丁
+  - 无未经授权的权重或测试数据进入 Git
+  outputs:
+  - LICENSE_AUDIT.md
+  - THIRD_PARTY_NOTICES.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T004
+  title: 建立隔离 Python/容器环境
+  phase: G0-Governance
+  depends_on:
+  - T001
+  - T002
+  owner_role: Implementer
+  estimate_hours: 6
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 建立 codescaler、rewarduq、orchestrator 三个环境
+  - 优先复现上游 pin，不盲目升级依赖
+  - 记录 pip/conda lock
+  acceptance_criteria:
+  - import smoke 通过
+  - torch 能识别四卡
+  - 环境 lock 与镜像 digest 入库
+  outputs:
+  - env/
+  - artifacts/provenance/environment.json
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T005
+  title: 实现合同、Schema 与任务图 CI 校验
+  phase: G0-Governance
+  depends_on:
+  - T000
+  owner_role: Implementer
+  estimate_hours: 4
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 接入 scripts/validate_bundle.py
+  - 新增 CI 检查 YAML/JSON/任务依赖
+  - 检查冻结 contract hash
+  acceptance_criteria:
+  - CI 对故意损坏的 schema/循环依赖会失败
+  - 正常执行包全通过
+  outputs:
+  - .github/workflows/contracts.yml
+  - tests/test_contracts.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T010
+  title: 导入 DeepCoder 问题注册表
+  phase: G0-Data
+  depends_on:
+  - T004
+  - T005
+  owner_role: DataSteward
+  estimate_hours: 6
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 下载 pin revision
+  - 只提取问题元数据与测试引用
+  - 生成 problem_hash
+  acceptance_criteria:
+  - 记录数与上游数据卡/脚本一致或解释差异
+  - 测试文本不写入 prompt 字段
+  - schema 验证通过
+  outputs:
+  - artifacts/registries/problems.parquet
+  - reports/gate0/dataset_inventory.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T011
+  title: 去重、重叠与泄漏审计
+  phase: G0-Data
+  depends_on:
+  - T010
+  owner_role: DataSteward
+  estimate_hours: 6
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - exact/normalized hash 去重
+  - 检查 source/time 重叠
+  - 输出 overlap matrix
+  acceptance_criteria:
+  - 同一 hash 不跨 split
+  - 所有删除/合并有映射表
+  - 外部 benchmark 重叠被记录
+  outputs:
+  - artifacts/registries/dedup_map.parquet
+  - reports/gate0/overlap_report.json
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T012
+  title: 冻结 risk/RL/final split
+  phase: G0-Data
+  depends_on:
+  - T011
+  owner_role: DataSteward
+  estimate_hours: 4
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 按 problem_hash/source 分层切分
+  - 密封 final registry
+  - 计算 split manifest hash
+  acceptance_criteria:
+  - row-level random split 被测试禁止
+  - final 文件只读且 hash 固定
+  - split balance 报告完成
+  outputs:
+  - contracts/dataset_split.lock.yaml
+  - artifacts/registries/*.parquet
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T013
+  title: 实现统一 prompt renderer
+  phase: G0-Protocol
+  depends_on:
+  - T012
+  owner_role: Implementer
+  estimate_hours: 6
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 复现上游 prompt
+  - 确保测试用例不进入 prompt
+  - 保存 rendered prompt 与 hash
+  acceptance_criteria:
+  - 100 个样本与上游预期格式对齐
+  - prompt 中无 test 字段
+  - token 长度统计完整
+  outputs:
+  - src/prompts/renderer.py
+  - tests/test_prompt_no_leakage.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T014
+  title: 实现 canonical code extractor
+  phase: G0-Protocol
+  depends_on:
+  - T013
+  owner_role: Implementer
+  estimate_hours: 6
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 实现单代码块规则
+  - 定义错误枚举
+  - 保留 raw response 与 extracted code
+  acceptance_criteria:
+  - 所有 golden cases 通过
+  - 无 train/eval 分支函数
+  - 确定性与幂等性通过
+  outputs:
+  - src/extraction/canonical.py
+  - tests/test_extraction_golden.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T015
+  title: 审计并统一上游 train/eval 提取差异
+  phase: G0-Protocol
+  depends_on:
+  - T014
+  owner_role: Reviewer
+  estimate_hours: 4
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 对上游两个 extractor 做差分测试
+  - 统计 1000 样本分歧
+  - 提交适配补丁
+  acceptance_criteria:
+  - 分歧原因有分类
+  - 本项目所有路径只调用 canonical extractor
+  - 回归测试覆盖
+  outputs:
+  - reports/gate0/extraction_parity.md
+  - patches/codescaler_extraction.patch
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T016
+  title: 实现 CodeScaler-1.7B scoring adapter
+  phase: G0-Protocol
+  depends_on:
+  - T004
+  - T014
+  owner_role: Implementer
+  estimate_hours: 8
+  gate: 0
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 封装 chat template、batching 与分数输出
+  - 保存 actual RM input/token/hash
+  - 实现 OOM backoff
+  acceptance_criteria:
+  - 重复性、批序、单/批 parity 通过
+  - NaN/Inf 触发失败
+  - 每个分数可追溯到输入 hash
+  outputs:
+  - src/scoring/codescaler_adapter.py
+  - tests/test_rm_scoring.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T017
+  title: RM 输入模式与截断审计
+  phase: G0-Protocol
+  depends_on:
+  - T016
+  owner_role: ExperimentOperator
+  estimate_hours: 6
+  gate: 0
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 比较 upstream exact 与 question+code
+  - 检查 2K/3K/4K 生成上限
+  - 统计代码尾部可见率与 rank 变化
+  acceptance_criteria:
+  - 冻结 input_mode/max_length/truncation_side
+  - silent truncation 为零或明确隔离
+  - cap-hit <5% 或说明上调
+  outputs:
+  - contracts/rm_scoring.lock.yaml
+  - reports/gate0/rm_input_audit.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T018
+  title: 部署并锁定隔离执行服务
+  phase: G0-Security
+  depends_on:
+  - T001
+  - T002
+  - T004
+  owner_role: SecurityReviewer
+  estimate_hours: 8
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 从 pin 源码构建镜像
+  - 记录 Dockerfile/image digest
+  - 配置无网络、非 root、cgroups v2 与输出限制
+  acceptance_criteria:
+  - 服务健康检查通过
+  - 容器无项目源码/密钥挂载
+  - 镜像 digest 固定
+  outputs:
+  - infra/sandbox/
+  - artifacts/provenance/sandbox_image.json
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T019
+  title: 执行沙箱安全与故障语义验收
+  phase: G0-Security
+  depends_on:
+  - T018
+  owner_role: SecurityReviewer
+  estimate_hours: 8
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 运行全部 adversarial fixtures
+  - 验证 timeout/OOM 后服务恢复
+  - 区分答案错误与 INFRA_ERROR
+  acceptance_criteria:
+  - 无宿主文件/网络访问
+  - fork/memory/output bomb 被限制
+  - INFRA_ERROR 不映射 reward=0
+  outputs:
+  - reports/gate0/sandbox_acceptance.md
+  - tests/security/
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T020
+  title: 实现 execution adapter、缓存与状态枚举
+  phase: G0-Protocol
+  depends_on:
+  - T014
+  - T019
+  owner_role: Implementer
+  estimate_hours: 8
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 实现请求/重试/缓存
+  - cache key 包含 code/test/image/limits
+  - 限制 stdout/stderr
+  acceptance_criteria:
+  - 已知正确/错误样本结果确定
+  - infra error 不缓存
+  - timeout 清理整个进程树
+  outputs:
+  - src/execution/adapter.py
+  - src/execution/cache.py
+  - tests/test_execution.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T021
+  title: 建立 evaluator parity 与 Oracle 强度审计
+  phase: G0-Protocol
+  depends_on:
+  - T020
+  owner_role: Reviewer
+  estimate_hours: 6
+  gate: 0
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 比较本地 evaluator 与上游评测
+  - 定义 train/audit/final suite
+  - 对已知解和 mutation 样本做敏感性检查
+  acceptance_criteria:
+  - parity 差异为零或有书面豁免
+  - 有限测试通过只称 test-suite success
+  - final evaluator 冻结
+  outputs:
+  - contracts/evaluation.lock.yaml
+  - reports/gate0/evaluator_parity.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T022
+  title: 全链路资源与成本审计
+  phase: G0-Cost
+  depends_on:
+  - T016
+  - T020
+  - T021
+  owner_role: ExperimentOperator
+  estimate_hours: 8
+  gate: 0
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 对至少 1000 candidates 测 RM 与执行
+  - 记录 GPU-s/CPU-s/wall-clock/p50/p95
+  - 测并发与 timeout
+  acceptance_criteria:
+  - 混合系统成本公式可计算
+  - 明确 cost claim 是否允许
+  - 同一硬件和并发配置
+  outputs:
+  - reports/gate0/cost_audit.md
+  - artifacts/metrics/cost_raw.parquet
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T023
+  title: Gate 0 评审与合同冻结
+  phase: G0-Review
+  depends_on:
+  - T003
+  - T005
+  - T012
+  - T015
+  - T017
+  - T019
+  - T021
+  - T022
+  owner_role: ExperimentReviewer
+  estimate_hours: 4
+  gate: 0
+  gpu_required: false
+  human_approval_required: true
+  actions:
+  - 汇总协议、成本、安全与差异
+  - 冻结 contracts hash
+  - 形成 go/no-go
+  acceptance_criteria:
+  - 所有阻断问题关闭
+  - 存在明确主 claim（cost 或 reliability）
+  - 人工签署 gate review
+  outputs:
+  - reports/gates/GATE0.md
+  - artifacts/provenance/contracts.sha256
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T100
+  title: 实现可恢复的 group generation runner
+  phase: G1-FailureAudit
+  depends_on:
+  - T023
+  owner_role: Implementer
+  estimate_hours: 8
+  gate: 1
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 按 problem shard/seed 生成
+  - 原子写入与断点恢复
+  - schema 校验
+  acceptance_criteria:
+  - 中断后无重复/缺失
+  - 固定 seed 可复现
+  - 每候选有完整 provenance
+  outputs:
+  - src/generation/runner.py
+  - tests/test_generation_resume.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T101
+  title: 生成 100 prompts × 4 smoke corpus
+  phase: G1-FailureAudit
+  depends_on:
+  - T100
+  owner_role: ExperimentOperator
+  estimate_hours: 4
+  gate: 1
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 执行生成并检查格式/长度
+  - 人工抽查 20 题
+  acceptance_criteria:
+  - 无批量空输出
+  - cap-hit/invalid 可解释
+  - 无测试泄漏
+  outputs:
+  - artifacts/corpus/smoke_candidates.parquet
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T102
+  title: 对 smoke corpus 全量 RM 打分与执行
+  phase: G1-FailureAudit
+  depends_on:
+  - T101
+  owner_role: ExperimentOperator
+  estimate_hours: 4
+  gate: 1
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - RM 批量评分
+  - 全量安全执行
+  - 联结 candidate/group records
+  acceptance_criteria:
+  - 记录数一一对应
+  - 无静默 infra error
+  - top1 标签可构造
+  outputs:
+  - artifacts/corpus/smoke_labeled.parquet
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T103
+  title: 危险错误 prevalence 与伪影审计
+  phase: G1-FailureAudit
+  depends_on:
+  - T102
+  owner_role: ExperimentReviewer
+  estimate_hours: 6
+  gate: 1
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 统计 optimization/selection FP
+  - 按截断/extractor/source 切片
+  - 人工复核至少 50 个 FP
+  acceptance_criteria:
+  - FP 不是主要由协议 bug 造成
+  - 报告置信区间
+  - 决定是否扩大数据
+  outputs:
+  - reports/gate1/prevalence_audit.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T104
+  title: 生成并执行 500 prompts × 4 pilot corpus
+  phase: G1-FailureAudit
+  depends_on:
+  - T103
+  owner_role: ExperimentOperator
+  estimate_hours: 12
+  gate: 1
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 按 frozen contract 扩大生成
+  - 全部执行并缓存
+  - 构建 group labels
+  acceptance_criteria:
+  - 至少 2000 candidates
+  - 数据完整率 >99.5%
+  - 失败可重跑
+  outputs:
+  - artifacts/corpus/pilot_labeled.parquet
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T105
+  title: 条件扩展至 1500–2500 prompts
+  phase: G1-FailureAudit
+  depends_on:
+  - T104
+  owner_role: ExperimentOperator
+  estimate_hours: 24
+  gate: 1
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 仅当危险 FP 数不足时扩展
+  - 按来源和难度补样
+  - 避免 dev/final
+  acceptance_criteria:
+  - 危险 FP group >=200 或正式 no-go
+  - 总候选 6K–10K
+  - problem split 无泄漏
+  outputs:
+  - artifacts/corpus/risk_full_labeled.parquet
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T106
+  title: 建立 candidate/group label builder
+  phase: G1-FailureAudit
+  depends_on:
+  - T102
+  owner_role: Implementer
+  estimate_hours: 6
+  gate: 1
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 实现三种 label
+  - 处理 infra error 与 ties
+  - 验证 top1 规则
+  acceptance_criteria:
+  - synthetic golden groups 通过
+  - softplus 单调不改 top1
+  - infra group 不产标签
+  outputs:
+  - src/labels/builder.py
+  - tests/test_labels.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T107
+  title: 构建失败类型 taxonomy 与标注抽样
+  phase: G1-FailureAudit
+  depends_on:
+  - T104
+  - T106
+  owner_role: DataSteward
+  estimate_hours: 8
+  gate: 1
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 定义 compile/runtime/logic/timeout/format/RM-shortcut 类别
+  - 双人或 Agent+人工复核样本
+  acceptance_criteria:
+  - taxonomy 互斥/可多标签规则明确
+  - 抽样记录可追溯
+  - 表面特征偏置单独报告
+  outputs:
+  - reports/gate1/failure_taxonomy.md
+  - artifacts/annotations/fp_review.parquet
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T108
+  title: Gate 1 评审：问题是否真实且规模足够
+  phase: G1-FailureAudit
+  depends_on:
+  - T103
+  - T105
+  - T107
+  owner_role: ExperimentReviewer
+  estimate_hours: 4
+  gate: 1
+  gpu_required: false
+  human_approval_required: true
+  actions:
+  - 检查危险 FP 率/数量/来源
+  - 检查成本主张
+  - 选择继续或 pivot
+  acceptance_criteria:
+  - 危险 FP >=约5%且至少200组，或存在更强可解释分布
+  - 伪影已排除
+  - 人工签署
+  outputs:
+  - reports/gates/GATE1.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T200
+  title: 实现无泄漏特征流水线
+  phase: G2-RiskModel
+  depends_on:
+  - T108
+  owner_role: Implementer
+  estimate_hours: 10
+  gate: 2
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 实现 score/validity/length/truncation/diversity 特征
+  - 缓存特征版本
+  - 禁止 oracle 字段
+  acceptance_criteria:
+  - feature schema 固定
+  - 单元测试证明无 execution 字段
+  - 同输入确定
+  outputs:
+  - src/risk/features.py
+  - tests/test_feature_no_leakage.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T201
+  title: 验证 problem-level risk split
+  phase: G2-RiskModel
+  depends_on:
+  - T200
+  owner_role: DataSteward
+  estimate_hours: 4
+  gate: 2
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 生成 train/calibration/dev
+  - 检查 source/difficulty balance
+  - 检测 hash 重叠
+  acceptance_criteria:
+  - 跨 split problem overlap=0
+  - candidate/pair 不跨 split
+  - split manifest 冻结
+  outputs:
+  - artifacts/registries/risk_split.parquet
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T202
+  title: margin/dispersion/static-analysis 基线
+  phase: G2-RiskModel
+  depends_on:
+  - T201
+  owner_role: Implementer
+  estimate_hours: 6
+  gate: 2
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 实现无训练基线
+  - 固定预算评估
+  - 生成曲线
+  acceptance_criteria:
+  - 每个 baseline 可复现
+  - 预算严格匹配
+  - 指标定义一致
+  outputs:
+  - artifacts/models/baselines/
+  - reports/gate2/simple_baselines.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T203
+  title: 训练 Logistic 与 GBDT 风险模型
+  phase: G2-RiskModel
+  depends_on:
+  - T201
+  owner_role: Implementer
+  estimate_hours: 8
+  gate: 2
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 分别预测 opt/selection/mixed
+  - 仅用 risk_train
+  - 保存模型与特征列表
+  acceptance_criteria:
+  - 不访问 calibration/dev 标签调参
+  - PR-AUC 与 recall@budget 完整
+  - 模型可加载复现
+  outputs:
+  - artifacts/models/risk_simple/
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T204
+  title: 提取冻结 RM embedding 并训练 MLP
+  phase: G2-RiskModel
+  depends_on:
+  - T201
+  owner_role: Implementer
+  estimate_hours: 10
+  gate: 2
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 定义 pooling
+  - 批量提取并 hash
+  - 训练小型 MLP
+  acceptance_criteria:
+  - embedding 不含 test
+  - 存储规模受控
+  - 与简单模型公平比较
+  outputs:
+  - artifacts/features/rm_embeddings/
+  - artifacts/models/risk_mlp/
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T205
+  title: 接入 RewardUQ 多头方差 baseline
+  phase: G2-RiskModel
+  depends_on:
+  - T201
+  owner_role: Implementer
+  estimate_hours: 12
+  gate: 2
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 优先共享冻结 backbone 多头
+  - 将 variance 作为 baseline/feature
+  - 不改主 RM
+  acceptance_criteria:
+  - 额外推理开销被测量
+  - raw variance 不被称为概率
+  - 可完全关闭
+  outputs:
+  - src/risk/rewarduq_adapter.py
+  - artifacts/models/rewarduq/
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T206
+  title: 校准风险概率
+  phase: G2-RiskModel
+  depends_on:
+  - T203
+  - T204
+  - T205
+  owner_role: Implementer
+  estimate_hours: 6
+  gate: 2
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 在 calibration split 做 Platt/isotonic
+  - 比较 Brier/ECE
+  - 冻结校准器
+  acceptance_criteria:
+  - dev 未用于拟合校准器
+  - 可靠性图输出
+  - 概率范围与 NaN 测试通过
+  outputs:
+  - artifacts/models/calibrators/
+  - reports/gate2/calibration.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T207
+  title: Risk–coverage 与 recall@budget 评估
+  phase: G2-RiskModel
+  depends_on:
+  - T202
+  - T206
+  owner_role: ExperimentReviewer
+  estimate_hours: 8
+  gate: 2
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 在 dev 上计算 PR-AUC/AURC/eAURC
+  - 预算 10/25/50%
+  - problem bootstrap
+  acceptance_criteria:
+  - 优于 random
+  - 与 margin/GBDT/RewardUQ 比较
+  - 95% CI 输出
+  outputs:
+  - reports/gate2/risk_coverage.md
+  - artifacts/metrics/risk_dev.parquet
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T208
+  title: 反 shortcut 与 shift 切片
+  phase: G2-RiskModel
+  depends_on:
+  - T207
+  owner_role: ExperimentReviewer
+  estimate_hours: 8
+  gate: 2
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 长度匹配
+  - 移除长度特征
+  - source-held-out
+  - truncation/checkpoint slice
+  acceptance_criteria:
+  - 收益不只来自长度
+  - 至少两个 shift slice 方向一致
+  - 失败切片被记录
+  outputs:
+  - reports/gate2/shift_and_ablation.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T209
+  title: 选择双头 router 版本
+  phase: G2-RiskModel
+  depends_on:
+  - T207
+  - T208
+  owner_role: ExperimentReviewer
+  estimate_hours: 4
+  gate: 2
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 比较 opt/selection/mixed heads
+  - 选择 corrective 与 audit score
+  - 冻结 router revision
+  acceptance_criteria:
+  - 选择规则预注册
+  - 模型复杂度有必要性
+  - router model card 完成
+  outputs:
+  - artifacts/models/router_final/
+  - reports/gate2/router_model_card.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T210
+  title: Gate 2 评审：离线路由是否有效
+  phase: G2-RiskModel
+  depends_on:
+  - T209
+  owner_role: ExperimentReviewer
+  estimate_hours: 4
+  gate: 2
+  gpu_required: false
+  human_approval_required: true
+  actions:
+  - 检查相对随机危险错误捕获
+  - 检查 margin/RewardUQ 差异
+  - 决定继续或 pivot
+  acceptance_criteria:
+  - 同预算相对 random 捕获提升约20%或更强证据
+  - 显著优于 margin 或给出可解释价值
+  - 人工签署
+  outputs:
+  - reports/gates/GATE2.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T300
+  title: 实现固定 candidate-execution 预算控制器
+  phase: G3-SelectiveVerification
+  depends_on:
+  - T210
+  owner_role: Implementer
+  estimate_hours: 6
+  gate: 3
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 预算按候选执行数而非 group 数
+  - 支持 10/25/50/100%
+  - 稳定 tie break
+  acceptance_criteria:
+  - 绝不超预算
+  - group size 变化时报错
+  - 预算利用率可审计
+  outputs:
+  - src/routing/budget_controller.py
+  - tests/test_budget.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T301
+  title: 实现分层随机审计与 propensity 记录
+  phase: G3-SelectiveVerification
+  depends_on:
+  - T300
+  owner_role: Implementer
+  estimate_hours: 6
+  gate: 3
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - risk decile/source/length/checkpoint 分层
+  - 最小审计率
+  - 记录 route probability
+  acceptance_criteria:
+  - 每层有审计样本
+  - propensity>0
+  - 固定 seed 可复现
+  outputs:
+  - src/routing/audit_sampler.py
+  - tests/test_propensity.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T302
+  title: 实现离线路由模拟器
+  phase: G3-SelectiveVerification
+  depends_on:
+  - T300
+  - T301
+  owner_role: Implementer
+  estimate_hours: 8
+  gate: 3
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 模拟 random/margin/UQ/router
+  - 选择已执行结果作为 oracle
+  - 计算 IPW 与未加权指标
+  acceptance_criteria:
+  - 相同预算严格一致
+  - 全执行与 oracle 对齐
+  - 缓存不影响结果
+  outputs:
+  - src/routing/simulator.py
+  - tests/test_routing_simulator.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T303
+  title: 固定预算 Best-of-N 评测
+  phase: G3-SelectiveVerification
+  depends_on:
+  - T302
+  owner_role: ExperimentReviewer
+  estimate_hours: 8
+  gate: 3
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - BoN@4/8
+  - selection regret
+  - 多预算 Pareto
+  acceptance_criteria:
+  - 比 CodeScaler-only 与 random 报告配对 CI
+  - 不使用 final test
+  - 所有候选生成预算匹配
+  outputs:
+  - reports/gate3/bon_results.md
+  - artifacts/metrics/bon_dev.parquet
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T304
+  title: 验证总体资源成本与并行流水
+  phase: G3-SelectiveVerification
+  depends_on:
+  - T303
+  owner_role: ExperimentOperator
+  estimate_hours: 6
+  gate: 3
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 计入 RM+router+execution 全成本
+  - 测 CPU/GPU overlap
+  - 按预算画成本曲线
+  acceptance_criteria:
+  - 不沿用上游10x数字
+  - 明确是否允许 cost claim
+  - 执行次数与 wall-clock 分开
+  outputs:
+  - reports/gate3/system_cost.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T305
+  title: Gate 3 评审：是否值得进入 RL
+  phase: G3-SelectiveVerification
+  depends_on:
+  - T303
+  - T304
+  owner_role: ExperimentReviewer
+  estimate_hours: 4
+  gate: 3
+  gpu_required: false
+  human_approval_required: true
+  actions:
+  - 检查 BoN 与成本
+  - 检查 router 稳定性
+  - 冻结 RL 方法
+  acceptance_criteria:
+  - 满足 +1~2pp 或非劣0.5pp下执行减少约30%等预注册条件之一
+  - 人工批准 GPU RL
+  outputs:
+  - reports/gates/GATE3.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T400
+  title: 冻结在线 RL baseline 与预算合同
+  phase: G4-RLIntegration
+  depends_on:
+  - T305
+  owner_role: Planner
+  estimate_hours: 4
+  gate: 4
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 确定 P1/P2/P4/P5/P6
+  - 冻结 token/rollout/execution budget
+  - 选择 LoRA/full 与 KL
+  acceptance_criteria:
+  - 所有 arm 仅方法变量不同
+  - 动态 group filtering 默认关闭
+  - 合同 hash 更新
+  outputs:
+  - contracts/rl_experiment.lock.yaml
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T401
+  title: 定位 veRL reward/advantage/group-filter hook
+  phase: G4-RLIntegration
+  depends_on:
+  - T400
+  owner_role: Implementer
+  estimate_hours: 6
+  gate: 4
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 追踪 DataProto 字段
+  - 绘制 reward 到 advantage 数据流
+  - 识别 resampling/filter 位置
+  acceptance_criteria:
+  - 有调用图与字段表
+  - router 在正确阶段执行
+  - 无测试数据进入 actor
+  outputs:
+  - reports/gate4/verl_dataflow.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T402
+  title: 实现 group-level hybrid reward manager
+  phase: G4-RLIntegration
+  depends_on:
+  - T401
+  owner_role: Implementer
+  estimate_hours: 12
+  gate: 4
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 整组路由
+  - 执行组 binary，非执行组 RM
+  - 记录 route/reward provenance
+  acceptance_criteria:
+  - 同组不混 reward 类型
+  - router disabled 精确退化上游
+  - infra error 不更新
+  outputs:
+  - src/training/hybrid_reward.py
+  - tests/test_hybrid_reward.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T403
+  title: 实现 synthetic golden advantage tests
+  phase: G4-RLIntegration
+  depends_on:
+  - T402
+  owner_role: Implementer
+  estimate_hours: 8
+  gate: 4
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 构造 mixed/all-pass/all-fail/RM groups
+  - 验证归一化/skip
+  - 检查 no-op
+  acceptance_criteria:
+  - 预期 advantage 精确匹配
+  - 零方差被识别
+  - 路由改动产生非恒定变化
+  outputs:
+  - tests/test_advantage_golden.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T404
+  title: 实现 effective-gradient 与 resampling 账本
+  phase: G4-RLIntegration
+  depends_on:
+  - T402
+  owner_role: Implementer
+  estimate_hours: 6
+  gate: 4
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 记录生成组/更新组/零方差
+  - 统计 resample count
+  - 匹配总生成预算
+  acceptance_criteria:
+  - 每一步可算 effective ratio
+  - 无隐式丢组
+  - baseline exposure 可核对
+  outputs:
+  - src/training/exposure_ledger.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T405
+  title: 实现 checkpoint 级 random audit/drift trace
+  phase: G4-RLIntegration
+  depends_on:
+  - T402
+  owner_role: Implementer
+  estimate_hours: 8
+  gate: 4
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 保存 router score/route/propensity
+  - checkpoint 分层 audit
+  - 生成校准输入
+  acceptance_criteria:
+  - 低风险区持续有标签
+  - 日志无测试内容
+  - router revision 可追踪
+  outputs:
+  - src/training/audit_trace.py
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T406
+  title: 5-step 单卡/小批功能 smoke
+  phase: G4-RLIntegration
+  depends_on:
+  - T403
+  - T404
+  - T405
+  owner_role: ExperimentOperator
+  estimate_hours: 6
+  gate: 4
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 最小数据训练
+  - 检查 loss/reward/advantage
+  - 故障注入
+  acceptance_criteria:
+  - 无 NaN/OOM/死锁
+  - 所有 trace 对齐
+  - 故障能安全退出
+  outputs:
+  - reports/gate4/smoke5.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T407
+  title: 20–30 step 四卡 RL smoke
+  phase: G4-RLIntegration
+  depends_on:
+  - T406
+  owner_role: ExperimentOperator
+  estimate_hours: 12
+  gate: 4
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 按资源 profile 训练
+  - 监控温度/显存/吞吐
+  - 验证 router 不退化
+  acceptance_criteria:
+  - 完成 checkpoint/eval
+  - execute-all/none 未非预期发生
+  - route 与 reward 证据完整
+  outputs:
+  - reports/gate4/smoke30.md
+  - artifacts/runs/
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T408
+  title: Gate 4 评审：实现是否可信
+  phase: G4-RLIntegration
+  depends_on:
+  - T407
+  owner_role: ExperimentReviewer
+  estimate_hours: 4
+  gate: 4
+  gpu_required: false
+  human_approval_required: true
+  actions:
+  - 代码/实验双 review
+  - 核对 advantage 与预算
+  - 冻结 pilot config
+  acceptance_criteria:
+  - 所有 golden tests 通过
+  - 协议无漂移
+  - 人工批准两 seed pilot
+  outputs:
+  - reports/gates/GATE4.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T500
+  title: 运行 P1 full-execution pilot
+  phase: G5-Pilot
+  depends_on:
+  - T408
+  owner_role: ExperimentOperator
+  estimate_hours: 16
+  gate: 5
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 固定 seed1/2
+  - 执行全部 group
+  - 保存 exposure/cost
+  acceptance_criteria:
+  - 两个 seed 完成
+  - budget/step/问题曝光记录完整
+  - 无 final test
+  outputs:
+  - artifacts/runs/P1_pilot/
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T501
+  title: 运行 P2 CodeScaler-only pilot
+  phase: G5-Pilot
+  depends_on:
+  - T408
+  owner_role: ExperimentOperator
+  estimate_hours: 16
+  gate: 5
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 固定相同 seed1/2
+  - 无执行 reward
+  - 仍做离线 audit 但不影响 reward
+  acceptance_criteria:
+  - 匹配生成/token预算
+  - RM 输入合同一致
+  - checkpoint 可评测
+  outputs:
+  - artifacts/runs/P2_pilot/
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T502
+  title: 运行 P4 random-hybrid pilot
+  phase: G5-Pilot
+  depends_on:
+  - T408
+  owner_role: ExperimentOperator
+  estimate_hours: 16
+  gate: 5
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 匹配 P6 执行预算
+  - 随机整组执行
+  - 记录 propensity
+  acceptance_criteria:
+  - 执行数与 P6 容差内一致
+  - 随机种子独立
+  - 无风险特征使用
+  outputs:
+  - artifacts/runs/P4_pilot/
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T503
+  title: 运行 P5 static-router pilot
+  phase: G5-Pilot
+  depends_on:
+  - T408
+  owner_role: ExperimentOperator
+  estimate_hours: 16
+  gate: 5
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 冻结 Gate2 router
+  - 不重校准
+  - 执行预算匹配
+  acceptance_criteria:
+  - router revision 固定
+  - audit 保留
+  - 数据完整
+  outputs:
+  - artifacts/runs/P5_pilot/
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T504
+  title: 运行 P6 drift-aware pilot
+  phase: G5-Pilot
+  depends_on:
+  - T408
+  owner_role: ExperimentOperator
+  estimate_hours: 20
+  gate: 5
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 训练窗口间校准
+  - 分层随机 audit
+  - propensity correction
+  acceptance_criteria:
+  - 无同步不稳定更新
+  - 校准数据仅来自允许标签
+  - 预算匹配
+  outputs:
+  - artifacts/runs/P6_pilot/
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T505
+  title: 两 seed pilot 统一评测与漂移分析
+  phase: G5-Pilot
+  depends_on:
+  - T500
+  - T501
+  - T502
+  - T503
+  - T504
+  owner_role: ExperimentReviewer
+  estimate_hours: 12
+  gate: 5
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 固定 checkpoint 规则
+  - 能力/风险/成本评测
+  - checkpoint calibration/drift
+  acceptance_criteria:
+  - P6 相对 P2/P4 方向一致或停止
+  - 无长度/格式作弊
+  - 报告 seed 个体结果
+  outputs:
+  - reports/gate5/pilot_results.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T506
+  title: Gate 5 评审：是否进入三 seed正式实验
+  phase: G5-Pilot
+  depends_on:
+  - T505
+  owner_role: ExperimentReviewer
+  estimate_hours: 4
+  gate: 5
+  gpu_required: false
+  human_approval_required: true
+  actions:
+  - 评估主指标与失败模式
+  - 删减最终 arm
+  - 冻结 final protocol
+  acceptance_criteria:
+  - P6 能力不明显退化且危险 FP/最终通过率至少一项改善
+  - 人工签署
+  outputs:
+  - reports/gates/GATE5.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T600
+  title: 冻结最终配置、预注册与 sealed test
+  phase: G6-Final
+  depends_on:
+  - T506
+  owner_role: Planner
+  estimate_hours: 4
+  gate: 6
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 冻结所有 config/阈值/checkpoint rule
+  - 计算 hash
+  - 设 final access policy
+  acceptance_criteria:
+  - 任何后续变更触发新版本
+  - final test 未打开
+  - 预注册签署
+  outputs:
+  - contracts/final_experiment.lock.yaml
+  - reports/preregistration.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T601
+  title: 运行三 seed 核心四 arm
+  phase: G6-Final
+  depends_on:
+  - T600
+  owner_role: ExperimentOperator
+  estimate_hours: 60
+  gate: 6
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - P1/P2/P4/P6 三个独立训练 seed
+  - 自动恢复与健康监控
+  - 严格资源账本
+  acceptance_criteria:
+  - 12 个计划 run 完成或透明报告失败
+  - 无 seed 替换
+  - 相同预算
+  outputs:
+  - artifacts/runs/final/
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T602
+  title: 开发集 checkpoint 选择并冻结
+  phase: G6-Final
+  depends_on:
+  - T601
+  owner_role: ExperimentReviewer
+  estimate_hours: 8
+  gate: 6
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 按预注册规则选 checkpoint
+  - 记录所有候选
+  - 禁止 final 信息
+  acceptance_criteria:
+  - 选择可程序化复现
+  - 没有挑峰值例外
+  - manifest 更新
+  outputs:
+  - artifacts/selections/checkpoints.json
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T603
+  title: 一次性 final 与外部评测
+  phase: G6-Final
+  depends_on:
+  - T602
+  owner_role: ExperimentOperator
+  estimate_hours: 16
+  gate: 6
+  gpu_required: true
+  human_approval_required: true
+  actions:
+  - 解封 final
+  - 每模型固定采样协议
+  - 外部 benchmark 仅一次
+  acceptance_criteria:
+  - final 只跑一次
+  - 原始输出只读归档
+  - 无重调
+  outputs:
+  - artifacts/eval/final/
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T604
+  title: 统计、成本与 failure analysis
+  phase: G6-Final
+  depends_on:
+  - T603
+  owner_role: ExperimentReviewer
+  estimate_hours: 16
+  gate: 6
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - problem bootstrap
+  - 3 seed mean/std
+  - risk/cost Pareto
+  - 失败 taxonomy
+  acceptance_criteria:
+  - 95% CI
+  - 绝对pp与相对值分开
+  - 不把 test pass称语义证明
+  outputs:
+  - reports/final/results.md
+  - reports/final/statistics.json
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T605
+  title: Claim 审核、证据索引与复现包
+  phase: G6-Final
+  depends_on:
+  - T604
+  owner_role: Reviewer
+  estimate_hours: 10
+  gate: 6
+  gpu_required: false
+  human_approval_required: true
+  actions:
+  - 逐条更新 claims status
+  - 链接 run manifest
+  - 生成 artifact hashes
+  acceptance_criteria:
+  - 无无证据 claim
+  - 所有图表可由脚本重建
+  - 敏感/大文件排除 Git
+  outputs:
+  - reports/final/CLAIMS.md
+  - EVIDENCE_INDEX.csv
+  - REPRODUCIBILITY.md
+  rollback: Revert task commit; preserve logs and failure report.
+- id: T606
+  title: 简历、技术报告、开源与论文草案
+  phase: G6-Final
+  depends_on:
+  - T605
+  owner_role: Planner
+  estimate_hours: 12
+  gate: 6
+  gpu_required: false
+  human_approval_required: false
+  actions:
+  - 写事实边界简历条目
+  - 技术报告
+  - 开源说明/论文 outline
+  acceptance_criteria:
+  - 数字来自 final 表
+  - 负结果和限制保留
+  - 许可证边界满足
+  outputs:
+  - docs/final_report.md
+  - docs/resume_project.md
+  - docs/paper_outline.md
+  rollback: Revert task commit; preserve logs and failure report.

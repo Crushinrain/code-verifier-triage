@@ -1,0 +1,29 @@
+version: 1
+canonical_function: src/extraction/canonical.py::extract_python_code
+rules:
+  fenced_blocks_required: true
+  exactly_one_python_or_unlabeled_block: true
+  multiple_blocks: INVALID_MULTIPLE_BLOCKS
+  missing_block: INVALID_NO_BLOCK
+  empty_block: INVALID_EMPTY_CODE
+  ast_parse_required: true
+  syntax_error: INVALID_SYNTAX
+  preserve_original_response: true
+  normalize_newlines: true
+  strip_surrounding_whitespace_only: true
+  semantic_rewrite_forbidden: true
+parity_rule: 训练、离线评测、RM 输入、执行器和最终评测必须调用同一 canonical extractor。
+golden_cases_minimum: 20
+required_cases:
+- single labeled fence
+- single unlabeled fence
+- reasoning plus code
+- two code blocks
+- unclosed fence
+- empty code
+- syntax error
+- unicode fence lookalike
+- very long response
+- trailing prose
+- embedded backticks
+- malicious shell text

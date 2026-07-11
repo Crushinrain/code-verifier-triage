@@ -1,0 +1,48 @@
+schema_version: 1
+project: code-verifier-triage
+approvals:
+  use_models_and_datasets:
+    status: PENDING
+    approver: null
+    timestamp: null
+    note: "Review licenses and storage requirements."
+  sandbox_security_profile:
+    status: PENDING
+    approver: null
+    timestamp: null
+  gate0_complete:
+    status: PENDING
+    approver: null
+    timestamp: null
+  gate1_data_generation:
+    status: PENDING
+    approver: null
+    timestamp: null
+  implement_risk_router:
+    status: PENDING
+    approver: null
+    timestamp: null
+  implement_rl_patch:
+    status: PENDING
+    approver: null
+    timestamp: null
+  run_over_4_gpu_hours:
+    status: PENDING
+    approver: null
+    timestamp: null
+  run_over_24_cpu_hours:
+    status: PENDING
+    approver: null
+    timestamp: null
+  final_evaluation:
+    status: PENDING
+    approver: null
+    timestamp: null
+  delete_over_10gb:
+    status: PENDING
+    approver: null
+    timestamp: null
+  external_release:
+    status: PENDING
+    approver: null
+    timestamp: null

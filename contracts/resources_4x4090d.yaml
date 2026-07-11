@@ -1,0 +1,46 @@
+version: 1
+host_inventory_required:
+- nvidia-smi
+- nvidia-smi topo -m
+- driver/CUDA
+- CPU cores
+- RAM
+- disk free
+- filesystem
+- Docker/cgroup v2
+profiles:
+  offline_generation:
+    gpus: 4
+    strategy: 每卡独立 1.7B vLLM worker，按 problem shard 生成
+  offline_rm_scoring:
+    gpus: 4
+    strategy: 每卡独立 CodeScaler-1.7B batch scorer
+  rl_integrated:
+    gpus: 4
+    strategy: 优先 3 卡 policy/rollout + 1 卡 RM；LoRA/FSDP offload，实测后冻结
+  rl_sequential_fallback:
+    gpus: 4
+    strategy: rollout、RM scoring、policy update 分阶段复用四卡，吞吐较低但最稳
+initial_rl_config:
+  policy: Qwen3-1.7B-Base
+  group_size: 4
+  max_new_tokens: 2048
+  global_prompt_batch: 16
+  micro_batch_per_gpu: 1
+  gradient_checkpointing: true
+  adaptation: LoRA for smoke/pilot; full FSDP only after memory profile
+storage:
+  minimum_free_gb: 500
+  preferred_free_gb: 1000
+  retention: 保留 final/关键 checkpoint；中间 FSDP state 按策略清理；原始结果与 manifest 永久保留
+cpu:
+  minimum_cores: 16
+  preferred_cores: 32
+  minimum_ram_gb: 64
+  preferred_ram_gb: 128
+  note: 执行验证常为 CPU 瓶颈
+consumer_gpu_controls:
+- 温度/功耗监控
+- Xid/ECC 不可用风险记录
+- NCCL topology 测试
+- 长跑前 2 小时 soak test
