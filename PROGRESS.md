@@ -669,3 +669,72 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
   T000 closure; only after T000 closes may a fresh Executor receive the requested
   four-GPU 30-minute T001 smoke HANDOFF.
 - Status: HANDED BACK FOR REVIEW
+
+### [2026-07-12] Review T000-R5 - formal independent review
+- Reviewed object: commit
+  `1360e76dad6eb13f9495a17b35088f274dd218cd`, parent
+  `fa79194aba18ec69e192ee81c24a3262605f79ed`, on
+  `fix/t000-r5-hosted-controls`; the worktree was clean and the complete tracked
+  diff was an append-only 96-line addition to `PROGRESS.md` only.
+- Reviewer platform: Codex
+- Reviewer independence: PASS - this fresh role-locked Reviewer did not execute
+  T000-R5, publish a branch, create or change PR #1, install/authenticate `gh`,
+  change repository visibility, or mutate GitHub controls; it independently
+  reread the committed handback, mode-600 primary evidence, local refs and
+  isolation state, then used only current read-only GitHub API probes
+- Workflow integrity: PASS - generic workflow `inspect` reports R5 as the newer
+  handback requiring review, `validate` returns no errors or warnings, and the
+  repository contract resolves the four distinct semantic documents with the
+  latest pre-R5 formal review structurally valid.
+- Tracked-scope evidence: PASS - `1360e76` is exactly one commit over
+  `fa79194`; `git diff --name-status/--numstat` reports only `PROGRESS.md` with
+  96 insertions and no deletion. Local `main` remains `90fc21e`; the project
+  worktree is clean and R4/R5 publication refs match the ledger.
+- R5 execution boundary: PASS - the recorded exact three-ref non-forced
+  publication, pinned official GitHub CLI 2.96.0 archive/checksum verification,
+  pre-existing authenticated `Crushinrain` administrative session, unique PR
+  creation, and fail-closed decision are supported by the named mode-600 JSON
+  evidence and its recorded hashes. No secret value or private-key content was
+  used as review evidence.
+- PR evidence: PASS - current read-only API state proves exactly PR #1 at
+  `https://github.com/Crushinrain/code-verifier-triage/pull/1`, base `main` at
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`, head
+  `fix/t000-r5-hosted-controls` at
+  `1360e76dad6eb13f9495a17b35088f274dd218cd`, open, mergeable, and unmerged.
+- At-handback hosted evidence: PASS - the R5 blocker artifact records the then
+  private repository, Actions allowed but zero workflows/runs/checks, and the
+  exact GitHub Free 403 responses for rulesets and classic protection. Because
+  no real check context existed and R5 prohibited merge, direct-main push,
+  visibility/billing change, or control weakening, stopping without hosted
+  mutation was required and compliant.
+- New Human fact and current hosted state: the Human Owner subsequently changed
+  the repository to public and requested the shortest path to a four-GPU,
+  30-minute T001 smoke after T000 closes. Current read-only API probes prove
+  `visibility=public`, `private=false`, `permissions.admin=true`, default
+  `main`; PR #1 remains unchanged, but registered workflows, runs for R5 head,
+  and check-runs for R5 head are still all zero; rulesets are empty and classic
+  `main` protection returns `404 Branch not protected`.
+- Bootstrap diagnosis: GitHub's official event documentation states that an
+  unfiltered `pull_request` workflow runs for `opened`, `synchronize`, or
+  `reopened`, and the workflow must exist on the default branch. The reviewed
+  workflow is absent from current `main` but exists at reviewed commit
+  `f34dbbaa5c643b7ec2b59a9df0587eef9af50bda`. The minimal repair is therefore
+  one guarded existing-commit fast-forward of `main` to `f34dbba`, followed by
+  one close/reopen cycle of the unchanged PR to obtain its real head check; no
+  workflow/source edit or trigger-only commit is justified.
+- Isolation evidence: PASS - exact origin and repository-local SSH transport,
+  deploy key/known-hosts and `.git/config` hashes remain at the R5-recorded
+  baselines. Parent repository HEAD/config/index remain at their original
+  baseline and `PV_forecast` retains only its pre-existing modification.
+- Batch acceptance: CONDITIONAL - R5 correctly completed branch publication,
+  unique open PR creation, bounded official CLI setup, and fail-closed hosted
+  diagnosis, but its single objective remains incomplete because no passing
+  PR-head CI or protected-main enforcement exists.
+- Authorization result: only the bounded T000-R6 public bootstrap and hosted
+  control closure in the current HANDOFF is authorized. T001, T002, T005,
+  Gate 0, GPU/model/data/Docker use, merge, and every broader action remain
+  prohibited until an independent post-R6 review closes T000.
+- Decision rationale: R5 was safe and compliant under its then-binding private
+  hosted boundary; the Human's later public visibility change removes the plan
+  blocker but cannot retroactively satisfy R5. One minimal R6 is required.
+- Gate decision: CONDITIONAL APPROVE

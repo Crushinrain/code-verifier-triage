@@ -2,153 +2,170 @@
 
 ## Batch identity
 
-- Repair batch: T000-R5
+- Repair batch: T000-R6
 - Parent Task ID: T000
-- Title: Close hosted PR, CI, and protected-main controls
+- Title: Bootstrap default-branch CI and enforce public protected main
 - Active role: EXECUTOR
 - Required context: a fresh role-locked Executor that did not perform the
-  T000-R4 formal review
-- Base: current tip of `review/t000-r4`
-- Required work branch: `fix/t000-r5-hosted-controls`
+  T000-R5 formal review
+- Base: current tip of `review/t000-r5`
+- Required work branch: `fix/t000-r6-public-controls`
 - GPU required: no
-- T001 authorization: no
+- T001 authorization: no; the four-GPU 30-minute T001 smoke becomes eligible
+  only after a fresh Reviewer closes T000
 
 ## Single objective
 
-Publish the reviewed R4 boundary, create exactly one pull request into `main`,
-run the repository's real CI, and establish active hosted enforcement that
-requires pull requests, blocks force-push and deletion, has no bypass actor,
-and binds the actual passing CI check. Record evidence and stop without merging.
+Use the Human Owner's completed private-to-public visibility change to close
+the remaining T000 hosted-control condition with the smallest reproducible
+bootstrap: install the already-reviewed workflow commit on `main` by one exact
+fast-forward, reuse PR #1 to obtain a real passing check on its unchanged R5
+head, enforce public protected-main controls against that exact check, record
+evidence, and stop without merging or editing implementation.
+
+## Why this bootstrap is necessary and bounded
+
+The fresh R5 review observed a public repository with administrative access,
+PR #1 open and unmerged at head `1360e76dad6eb13f9495a17b35088f274dd218cd`,
+but zero registered workflows, zero runs/checks for that head, no ruleset, and
+unprotected `main`. The workflow exists in reviewed commit
+`f34dbbaa5c643b7ec2b59a9df0587eef9af50bda` but not in current `main` at
+`90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`.
+
+GitHub's official event documentation states that a `pull_request` workflow
+without explicit activity types runs for `opened`, `synchronize`, and
+`reopened`, while the workflow must exist on the default branch. Therefore the
+only authorized default-branch update is the already-reviewed fast-forward to
+`f34dbba`; after it registers, PR #1 may be closed and immediately reopened
+once to produce the documented `reopened` event. No new commit, workflow edit,
+empty commit, or implementation change is needed.
+
+Official basis:
+`https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request`.
 
 ## Authorized writes and hosted actions
 
-- Repository-local branch metadata needed to create
-  `fix/t000-r5-hosted-controls` from clean `review/t000-r4`
-- Mode-600 temporary evidence only under `.git/t000-r5-*`
-- `PROGRESS.md`, tail append only, and one T000-R5 handback commit
-- The exact non-forced branch publications, unique PR creation, CI observation,
-  and ruleset/branch-protection mutation listed below
-- If neither an official `gh` binary nor an authenticated browser session is
-  available, one reversible project-local installation of the official GitHub
-  CLI under `.git/t000-r5-tools/` as bounded below
+- Create `fix/t000-r6-public-controls` from clean `review/t000-r5`
+- Mode-600 temporary evidence only under `.git/t000-r6-*`
+- `PROGRESS.md`, tail append only, and exactly one T000-R6 handback commit
+- Non-forced publication of `review/t000-r5` and the R6 branch
+- Exactly one guarded fast-forward update of remote `main` from `90fc21e` to
+  existing reviewed commit `f34dbba`
+- Exactly one close then one reopen of PR #1, only after the default-branch
+  workflow is registered and only while the PR is open, unmerged, and at the
+  expected immutable head
+- Read-only CI observation followed by one classic branch-protection mutation
+  on `main`, or one main-only active ruleset if classic protection is
+  unavailable, using the exact successful check context returned by GitHub
 
-No system/global package installation, key/config change, token creation,
-repository content implementation, merge, or broader hosted mutation is
-authorized.
+No source/workflow/schema/contract/approval/Claim edit, PR merge, visibility
+change, credential action, package installation, or GPU action is authorized.
 
-## Mandatory local preflight
+## Mandatory preflight and fail-closed boundary
 
-1. Start from clean `review/t000-r4`; verify its parent is R4 commit
-   `4cfd5cbcf1c9689b1017db549924be10864c8293`, create only
-   `fix/t000-r5-hosted-controls`, and confirm local `main` remains
-   `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`.
-2. Reverify exact origin and repository-local strict SSH command, key/known-host
-   fingerprints, and that the eight already-published remote-tracking refs
-   remain at the R4-reviewed SHAs. Do not contact GitHub during this step.
-3. Verify the R4 execution and review branches do not yet have corresponding
-   remote-tracking refs. Publish only these non-forced refspecs, plus the new PR
-   head at its initial review tip:
-   - `refs/heads/fix/t000-r4-safe-probe:refs/heads/fix/t000-r4-safe-probe`
-   - `refs/heads/review/t000-r4:refs/heads/review/t000-r4`
-   - `refs/heads/fix/t000-r5-hosted-controls:refs/heads/fix/t000-r5-hosted-controls`
-4. Every push must omit force, deletion, tags, mirror, all-branches, and
-   upstream-setting options. Any non-fast-forward or unexpected remote state
+1. Start at clean `review/t000-r5`; create only
+   `fix/t000-r6-public-controls`. Verify local `main` is `90fc21e`, R5 is
+   `1360e76`, and reviewed workflow bootstrap commit is exactly `f34dbba`.
+2. Re-run workflow `inspect` and `validate`; verify the R5 commit is a single
+   append-only `PROGRESS.md` change over `fa79194` and all starter validation
+   checks still pass.
+3. Reverify exact origin, repository-local SSH command, host/deploy-key
+   fingerprints, project/parent worktree isolation, and that no key/config or
+   implementation file changed.
+4. With the pinned official `.git/t000-r5-tools/gh`, prove the active account,
+   exact repository, `visibility=public`, `permissions.admin=true`, default
+   branch `main`, remote `main=90fc21e`, PR #1 open/unmerged with base `main`
+   and head `1360e76`, and no unexpected PR/ruleset/protection state. Never
+   print or persist any token/cookie/password.
+5. Re-query workflows, runs, and check-runs before mutation. If a genuine
+   successful PR-head check already exists, skip the main bootstrap and PR
+   state cycle and proceed to enforcement. Any conflicting or failing state
    fails closed.
 
-## Administrative-session boundary
+## Minimal default-branch and PR trigger sequence
 
-Use only an already-authenticated GitHub browser session or an installed
-official `gh` client whose `gh auth status` proves access to
-`Crushinrain/code-verifier-triage` and sufficient repository-administration
-authority. A deploy key alone is not administrative authority.
+Only when no real PR-head check exists:
 
-If `gh` is absent and no authenticated browser session is usable, the Executor
-may download one pinned official GitHub CLI release archive plus its official
-checksum file, verify the archive checksum before extraction, and place only
-the binary under `.git/t000-r5-tools/` with no PATH/profile/package-database
-mutation. Do not use a shell installer, package manager, `sudo`, root, or an
-unverified mirror. Record version, official URLs, and checksum. Installation
-does not authorize login; continue only if pre-existing authentication is then
-proved, otherwise hand back blocked.
-
-- Begin with read-only identity, repository, existing-PR, workflow, and
-  ruleset/protection probes.
-- Never request, accept, print, copy, persist, or place a token/password/cookie
-  in commands, files, logs, the ledger, chat, or Git configuration.
-- Do not start device authorization or create/refresh credentials. If no usable
-  existing administrative session is available, record only non-sensitive
-  status metadata, hand back FAIL/blocked, and stop after the branch publication.
-- Fail closed if the repository identity, default branch, existing PR state, or
-  current protection differs from the expected target.
-
-## Unique PR and CI
-
-1. Prove there is no open PR with head
-   `Crushinrain:fix/t000-r5-hosted-controls` and base `main`; reuse an exact
-   already-existing match only if all identity fields agree, otherwise stop.
-2. Create at most one PR from `fix/t000-r5-hosted-controls` into `main`, with a
-   T000 bootstrap/control title and body that states: no merge is authorized,
-   T001 is not included, and hosted-control evidence is pending.
-3. Observe the PR-triggered `.github/workflows/contracts.yml` run. Record the
-   repository, PR number/URL, base/head refs and SHAs, workflow/run/check URLs,
-   exact check context, conclusion, and timestamps. Never infer a check name
-   from YAML; bind only a context returned by GitHub for this PR commit.
-4. If CI fails or does not produce a stable real check context, do not weaken
-   the workflow or protection. Record the failure and stop.
+1. Confirm `f34dbba` is a descendant of `90fc21e`, contains the reviewed
+   `.github/workflows/contracts.yml`, and remote `main` still equals `90fc21e`.
+2. Execute one non-forced explicit fast-forward refspec only:
+   `git push --porcelain origin
+   f34dbbaa5c643b7ec2b59a9df0587eef9af50bda:refs/heads/main`.
+   No force, deletion, tags, mirror, all-branches, upstream, fetch, pull,
+   merge, rebase, or reset is allowed.
+3. Reread remote `main`; require exactly `f34dbba`. Wait until GitHub registers
+   `.github/workflows/contracts.yml`. The push may produce a main-branch run;
+   record it but do not use it as proof of the PR-head requirement.
+4. Reread PR #1 and require open, unmerged, base `main`, head ref
+   `fix/t000-r5-hosted-controls`, and immutable head `1360e76`. Close exactly
+   PR #1, verify closed and unmerged, then immediately reopen exactly PR #1 and
+   verify open/unmerged with the same head. Do not close any other PR.
+5. Poll only the resulting PR/head workflow run and check-runs with bounded
+   intervals and an overall 20-minute deadline. Require a completed successful
+   real check on exact head `1360e76`; record workflow/run/job/check IDs, URLs,
+   event, timestamps, head/base, and exact context. Do not rerun, approve,
+   cancel, edit, or weaken a failed/pending workflow.
 
 ## Protected-main enforcement
 
-After the real CI context is known, create or update one active ruleset targeting
-only `refs/heads/main`; if rulesets are unavailable, use equivalent classic
-branch protection. The effective hosted state must prove all of:
+After the exact successful PR-head context is known, establish protection only
+for `main`. Prefer classic branch protection with:
 
-- pull requests are required before updates to `main` (zero approving reviews
-  is acceptable for this bootstrap; direct pushes are not)
-- branch deletion and non-fast-forward/force-push are blocked
-- bypass actors are empty and no administrator/repository-role bypass applies
-- the exact successful CI context from this PR is a required status check
+- required status checks enabled, strict/up-to-date, containing only the exact
+  successful check context observed on PR head `1360e76`
+- pull request required before updates, with zero required approving reviews
+- administrator enforcement enabled
+- restrictions absent and no bypass actor/role
+- force pushes disabled and deletions disabled
+- no signed-commit, merge-queue, deployment, code-owner, conversation,
+  linear-history, lock, or unrelated rule
 
-Do not configure wildcard targets, merge queues, signed-commit requirements,
-deployment gates, code-owner review, or unrelated repository settings. Reread
-the effective hosted configuration after mutation and save only non-sensitive
-JSON/page evidence with rule/ruleset or protection identifiers and enforcement
-fields.
+If classic protection is unavailable, one active ruleset targeting exactly
+`refs/heads/main` with equivalent fields and empty bypass actors is authorized.
+Do not create both. Reread the effective hosted configuration and prove direct
+updates, force pushes, and deletion are blocked for all actors, including
+administrators, and the exact passing check is required.
 
-## Final ledger, commit, and PR-head update
+## Final ledger and branch publication
 
-1. Append one `Batch T000-R5 - hosted controls handback` block with local source
-   SHAs, non-forced push results, administrative-session status without secrets,
-   PR identity, final head SHA, CI run/check identity and conclusion, effective
-   protected-main fields, isolation checks, and any fail-closed reason.
-2. Create exactly one local T000-R5 commit on
-   `fix/t000-r5-hosted-controls`; do not alter implementation, contracts,
-   approvals, raw starter evidence, or Claims.
-3. If hosted controls succeeded, non-force push only
-   `refs/heads/fix/t000-r5-hosted-controls:refs/heads/fix/t000-r5-hosted-controls`,
-   wait for the PR's CI on this final commit, and require the bound check to pass
-   under the active protection. If the handback is blocked, the same single
-   non-force branch update is allowed solely to preserve the negative evidence.
-4. Verify PR head equals the handback commit, the PR remains open, `main` is
-   unchanged, and the effective protected-main configuration remains active.
-   Set `Status: HANDED BACK FOR REVIEW` and stop for a fresh Reviewer.
+1. Append one `Batch T000-R6 - public hosted controls handback` block recording
+   exact local/remote SHAs, public/admin and PR facts, every mutation, CI
+   identity/conclusion, effective protection fields, checksums of mode-600
+   evidence, isolation, and any fail-closed reason.
+2. Create exactly one local handback commit on
+   `fix/t000-r6-public-controls`; no implementation or semantic-document edit
+   other than the ledger tail is allowed.
+3. Non-force publish `review/t000-r5`, publish the R6 branch at its review base,
+   then update the R6 branch once to the handback commit so evidence is durable.
+   Never update `main` beyond exact `f34dbba`.
+4. Final reread must prove PR #1 open/unmerged at head `1360e76`, its exact
+   check passing, remote `main=f34dbba`, effective protection active, branch
+   refs correct, local worktree clean, and project/parent isolation intact.
+5. Set `Status: HANDED BACK FOR REVIEW` and stop. Only a fresh Reviewer may
+   close T000 and authorize T001/T002/T005; the Executor must not use GPUs.
 
 ## Forbidden actions
 
-- Merge, auto-merge, close/reopen an unrelated PR, direct or force push to
-  `main`, deletion, tag, release, fetch/pull/rebase/reset, or branch-history
-  rewrite
-- Credential/device-login flow, token/cookie output, deploy-key change, SSH or
-  Git config change, system/global installation, or any unverified CLI/script
-- Workflow/code/schema/contract/approval/Claim edits; T001/T005; Gate 0;
-  GPU/model/data/Docker; candidate execution; final access; external release
+- Merge/auto-merge PR #1, merge any branch, or direct-update `main` to any SHA
+  other than the single exact `90fc21e -> f34dbba` fast-forward
+- Any force push, deletion, tag, release, default-branch/visibility/billing
+  change, wildcard ruleset, bypass, weakened CI/protection, or fabricated status
+- New commit used only to trigger CI, workflow/source/config/schema/contract/
+  approval/Claim edit, or implementation repair
+- Login/device flow, token/cookie/password output, key/Git/SSH config change,
+  installation, sudo/root/system/global mutation
+- T001/T002/T005 execution, Gate 0, GPU/model/data/Docker, candidate execution,
+  final access, long training, or external release
 
 ## Acceptance
 
-- The exact R4 execution/review branches and single R5 PR head are published
-  non-forced; exactly one open PR targets `main`.
-- The final PR-head commit has the repository's real contracts CI check passing.
-- Hosted evidence proves active PR-required, no-bypass, no-force, no-delete,
-  exact-required-check enforcement on `main`.
-- Local/remote `main`, parent repository, keys/config, implementation, frozen
-  content, approvals, Claims, and prohibited resources remain unchanged.
-- One bounded handback commit records evidence; the PR stays open and unmerged.
+- Public/admin repository identity, exact refs, single PR, workflow/run/check,
+  and every hosted mutation are independently reproducible from saved evidence.
+- Remote `main` moves once and only by the exact reviewed fast-forward to
+  `f34dbba`; PR #1 remains open/unmerged at immutable head `1360e76`.
+- A real PR-triggered check on exact head `1360e76` completes successfully.
+- Main-only enforcement requires PRs and that exact check, enforces admins,
+  blocks force/deletion, and has no bypass actor or unrelated rule.
+- One bounded R6 ledger-only handback commit exists; worktrees, keys/config,
+  frozen content, approvals, Claims, implementation, and prohibited resources
+  remain isolated.
