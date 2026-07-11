@@ -399,3 +399,34 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
 - Reviewer attention: do not infer successful authentication from the deploy-key
   installation fact; treat the empty command evidence as ambiguous.
 - Status: HANDED BACK FOR REVIEW
+
+### [2026-07-11] Review T000-R3 - formal independent review
+- Reviewed object: commit
+  `efc326d6897dec8853968cdf6c9d710a4300d295`, parent
+  `f06e6e94b3e9ed6c6c99066452f43407b2083ddc`, on
+  `fix/t000-r3-initial-publish`; its clean tracked diff modified only the
+  append-only failure ledger.
+- Reviewer platform: Codex
+- Reviewer independence: PASS - this fresh role-locked Reviewer did not execute T000-R3, authenticate to GitHub, run ls-remote, or push; it independently reread the fixed ledger and verified only permitted local evidence
+- Batch verdict: FAIL / REPAIR_REQUIRED - authentication success was not proven;
+  the authorized attempt returned outer rc 1 with empty output and none of the
+  intended child markers, so remote emptiness and publication remain untested.
+- Safety assessment: PASS - the Executor correctly treated ambiguous evidence as
+  failure, consumed no retry, skipped `ls-remote` and push, recorded the negative
+  result, and stopped. This fail-closed behavior is not an implementation defect.
+- Bounded diagnosis: the missing child evidence is consistent with ambiguity
+  introduced by outer PowerShell/SSH quoting plus remote Bash command-substitution
+  buffering and the absence of a child-owned timeout; it does not establish a
+  bad deploy key, GitHub failure, or successful authentication.
+- Independent isolation evidence: commit parent and one-file diff are correct;
+  worktree is clean; local `main` and all six source SHAs are unchanged; local
+  remote-tracking refs are empty and `.git/FETCH_HEAD` is absent. Parent
+  HEAD/config/index hashes match the ledger baseline with only the pre-existing
+  `M PV_forecast`.
+- Authorization result: only T000-R4 may perform one fixed-controller
+  authentication retry and its explicitly conditional empty-remote check/atomic
+  push. T001, T005, Gate 0, API/PR/ruleset/branch-protection mutation, and every
+  broader remote action remain prohibited.
+- Decision rationale: the safety boundary passed, but the T000-R3 objective and
+  all remote publication acceptance criteria remain unmet; repair is required.
+- Gate decision: REJECT
