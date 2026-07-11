@@ -233,3 +233,61 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
   protection remains an explicit blocking condition; unconditional approval is
   therefore unavailable.
 - Gate decision: CONDITIONAL APPROVE
+
+### [2026-07-11 22:12 +08:00] Batch T000-R2 - pre-authentication handback
+- Active role: EXECUTOR; this context remained role-locked and did not perform
+  the T000-R1 formal review or authorize authentication/push.
+- Git boundary: created `fix/t000-r2-github-transport` from fixed review tip
+  `3a8010adc162febd0889ee0f6e62eab37f580758`; `main` remained
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`.
+- Fail-closed preflight: the dedicated private/public key paths and project
+  `.git/github_known_hosts` were all absent before creation; no XC login key or
+  other private key was listed, read, copied, or reused.
+- Official host-key source:
+  `https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints`.
+- Host-key evidence: the official page contained the expected ED25519 host line
+  and fingerprint; `ssh-keyscan -T 10 -t ed25519 github.com` returned one unique
+  matching line. `ssh-keygen -lf - -E sha256` returned
+  `SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU` exactly.
+- Key-generation command: `ssh-keygen -q -t ed25519 -N '' -C
+  'code-verifier-triage@xc-server' -f
+  /data3/xc/.ssh/code_verifier_triage_github_ed25519` under `umask 077`.
+- Private-key handling: the private key remains only at the dedicated server
+  path with mode 600; it was never printed, copied, uploaded, or placed in the
+  ledger. The public key has mode 644 and was delivered to the Human Owner.
+- Deploy public-key fingerprint:
+  `SHA256:uEvYGvdUeVBES69/F5njgZcSIKJm+mGZrqyrx33iEoA`.
+- Known-hosts evidence: project-local `.git/github_known_hosts` has mode 600,
+  exactly one verified GitHub ED25519 line, and the official fingerprint above.
+- Remote evidence: project-local `origin` equals
+  `git@github.com:Crushinrain/code-verifier-triage.git`.
+- SSH configuration evidence: `git config --show-origin --get core.sshCommand`
+  reported `file:.git/config` and the command uses only the dedicated key with
+  `IdentitiesOnly=yes`, project `.git/github_known_hosts`,
+  `StrictHostKeyChecking=yes`, and `BatchMode=yes`.
+- Network/authentication boundary: the only network reads were the official
+  GitHub documentation and ED25519 `ssh-keyscan`. No `ssh -T`, `git ls-remote`,
+  fetch, pull, push, GitHub API mutation, `gh auth`, or credential prompt was
+  attempted.
+- Workflow before handback: inspect returned `READY_FOR_EXECUTION` with latest
+  valid verdict `CONDITIONAL APPROVE`; validate returned zero errors/warnings.
+- Parent isolation before handback: parent HEAD remained
+  `4ecbc0f2bc7788a877684f7c896607a9bba78fb2`; parent HEAD/config/index hashes
+  matched the ledger baseline and `PV_forecast` retained ` M PV_forecast`.
+- Tracked scope: only this `PROGRESS.md` tail append is intended for the sole
+  T000-R2 commit; key, known-hosts, remote, and SSH command are authorized local
+  transport state outside the tracked tree.
+- Acceptance transport preparation: pass - dedicated key, verified host key,
+  exact origin, strict repository-local SSH command, permissions, and public-key
+  delivery are established without authentication.
+- Acceptance hosted protection: pending/block - deploy key installation, hosted
+  CI, push, and branch-protection evidence do not yet exist.
+- Next authority: the Human Owner must add the delivered public key under GitHub
+  Repository Settings -> Deploy keys with write access and explicitly confirm.
+  That confirmation alone does not authorize authentication or push; a fresh
+  Reviewer must prepare the next HANDOFF.
+- Authorization boundary: T001, T005, research Gate 0, authentication, push,
+  and hosting-setting mutation remain prohibited.
+- Reviewer attention: independently verify the containing commit and local
+  transport metadata without contacting the Git repository.
+- Status: HANDED BACK FOR REVIEW
