@@ -198,3 +198,38 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
   and command checks, verify post-handback workflow state, and keep hosted
   protection failed/blocked unless real external evidence is later authorized.
 - Status: HANDED BACK FOR REVIEW
+
+### [2026-07-11 21:57 +08:00] Review T000-R1 - formal independent review
+- Reviewed object: fixed three-dot diff
+  `394a80497ba10acec29175c6fca135170e367c69...f34dbbaa5c643b7ec2b59a9df0587eef9af50bda`;
+  exactly one repair commit, a clean worktree, and only
+  `.pre-commit-config.yaml`, `.github/workflows/contracts.yml`, and the
+  Executor ledger tail changed. `main` remained
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`.
+- Reviewer platform: Codex
+- Reviewer independence: PASS - fresh reviewer did not execute T000-R1; independently verified commit f34dbbaa and primary evidence
+- Standards axis: PASS - independent review found zero documented-standard
+  violations and zero applicable baseline smells. The local hooks contain no
+  remote hook or machine-specific path; CI uses read-only repository permission;
+  the ledger change is append-only.
+- Spec axis: PASS - independent review found zero findings. The repair supplies
+  the missing minimal pre-commit and CI controls without T005 negative tests,
+  schema changes, frozen-source changes, or T001 work.
+- Primary evidence: starter manifest passed 91/91; bundle validation reported
+  14 contracts, 6 schemas, 69 tasks, and 7 Gate checklists; contract digest was
+  `3480e4dde715e7999f7e09b6534b9c40c83e08f36daef6f787bedf5abf4244e7`;
+  both YAML files parsed; workflow tests returned 28 passed and 10 subtests.
+- Isolation evidence: the repair branch is one commit over the fixed review tip,
+  `git diff --check` passed, no remote exists, and parent HEAD/config/index
+  hashes match the ledger baseline. No hosted CI or branch-protection evidence
+  exists.
+- Accepted repair: the missing local pre-commit and hosted CI definitions are
+  implemented and independently validated. The only remaining T000 condition is
+  real hosted main-branch protection after a verified remote is established.
+- Authorization result: only the T000-R2 transport/key-preparation HANDOFF may
+  proceed. T001, T005, research Gate 0, authentication, push, and hosting-setting
+  mutation remain unauthorized.
+- Decision rationale: local T000-R1 acceptance is satisfied, while hosted branch
+  protection remains an explicit blocking condition; unconditional approval is
+  therefore unavailable.
+- Gate decision: CONDITIONAL APPROVE
