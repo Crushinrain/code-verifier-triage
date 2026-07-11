@@ -738,3 +738,90 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
   hosted boundary; the Human's later public visibility change removes the plan
   blocker but cannot retroactively satisfy R5. One minimal R6 is required.
 - Gate decision: CONDITIONAL APPROVE
+
+### [2026-07-12 03:27 +08:00] Batch T000-R6 - public hosted controls handback
+- Active role: EXECUTOR; this fresh role-locked context did not perform or alter
+  the T000-R5 formal review and did not approve its own work.
+- Local boundary: created `fix/t000-r6-public-controls` from clean
+  `review/t000-r5` at
+  `4f34c8e909960ffaa6462a9aa8f872e1557043f3`; local `main` remained
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94` and no implementation,
+  workflow, schema, contract, approval, or Claim file was edited.
+- Mandatory preflight: pass - workflow inspect reported
+  `READY_FOR_EXECUTION` with the valid R5 `CONDITIONAL APPROVE`; workflow
+  validate returned no errors/warnings; the 91-entry starter manifest and
+  bundle validator passed; R5 is exactly one append-only `PROGRESS.md` commit
+  over `fa79194`; `f34dbba` is a descendant of `90fc21e` and contains the
+  reviewed `.github/workflows/contracts.yml`.
+- Hosted preflight: pass - exact repository
+  `Crushinrain/code-verifier-triage` was public with `permissions.admin=true`
+  and default branch `main`; remote `main=90fc21e`; the sole PR was #1, open,
+  unmerged, base ref `main`, head ref `fix/t000-r5-hosted-controls`, immutable
+  head `1360e76dad6eb13f9495a17b35088f274dd218cd`; workflows, PR-head runs,
+  checks, and rulesets were all zero and classic protection returned 404.
+- Default-branch bootstrap: pass - exactly one non-forced explicit push moved
+  only remote `main` from `90fc21e` to reviewed commit `f34dbba`; push rc was 0,
+  stderr was empty, and the porcelain record shows only
+  `90fc21e..f34dbba`. Readback proved remote `main=f34dbba` and exactly one
+  active workflow, `Contract checks`, workflow ID `311392541`, path
+  `.github/workflows/contracts.yml`.
+- PR trigger: pass - after rereading unchanged PR #1, exactly one close returned
+  rc 0 and was independently read back closed/unmerged; exactly one reopen
+  returned rc 0 and restored open/unmerged with the same head `1360e76`. No
+  other PR or PR field was changed.
+- CI evidence: pass - the reopened event produced PR workflow run
+  `29165063905`, event `pull_request`, created `2026-07-11T19:19:56Z`,
+  completed `2026-07-11T19:20:07Z`, conclusion `success`, exact head
+  `1360e76`; its sole required check/job is context `contracts`, ID
+  `86576654937`, started `2026-07-11T19:19:58Z`, completed
+  `2026-07-11T19:20:06Z`, conclusion `success`.
+- Protection serialization correction: the first PUT was rejected before any
+  mutation with HTTP 400 because its cross-shell JSON lost quotation marks.
+  Read-only follow-up proved classic protection still 404 and rulesets still
+  empty. No retry of an effective mutation or duplicate protection occurred;
+  a separately stored mode-600 payload passed `python3 -m json.tool` before
+  the sole effective PUT.
+- Protected-main enforcement: pass - the sole effective classic-protection PUT
+  returned rc 0. Readback proves required status checks strict/up-to-date with
+  only exact context `contracts`; pull request required with zero approving
+  reviews; administrators enforced; restrictions absent; required signatures,
+  linear history, conversation resolution, branch lock, creation block, and
+  fork syncing disabled; force pushes and deletions disabled; rulesets remain
+  empty, so no bypass actor/role or unrelated rule exists.
+- Evidence: the mode-600 core evidence checksum list is
+  `.git/t000-r6-evidence.sha256`, SHA-256
+  `6d25cbc9932c7dc131adfed25db1c335678d343026eaa6d99576d261984ed565`.
+  It binds public/admin, PR, workflow/run/check, exact main fast-forward,
+  close/reopen, rejected no-op PUT, unchanged readback, valid payload,
+  effective protection response/readback, and branch-publication evidence.
+- Branch publication: the required non-forced atomic publication was invoked
+  for `review/t000-r5` and `fix/t000-r6-public-controls` at the common review
+  base. The outer capture ended before recording a child rc, so no rc is
+  inferred; independent remote-ref reread proves both refs exist exactly at
+  `4f34c8e909960ffaa6462a9aa8f872e1557043f3`. The R6 branch will receive only
+  this containing ledger-only handback commit as one non-forced update.
+- Isolation: project `.git/config`, known-hosts, and deploy public key retained
+  SHA-256 values
+  `0f53951e2cef9ee904f098689ba89b81b8ed585969f6f49ddda1d6052ab28a6a`,
+  `6233fddbb0a29afc8c4e8c699733c1a188c3a41f2fb63a2640653dc4aea624ce`,
+  and `e5cbab4ed8f7a5533d9de64398530e9d6abb50516ade720aac61d3df53b37c4c`;
+  private-key metadata remained mode 600, size 432, mtime 1783779040, inode
+  43540349 without reading key content. Parent HEAD and its HEAD/config/index
+  hashes match the original ledger baseline; `PV_forecast` retains only its
+  pre-existing modification.
+- New Human fact for the next Reviewer: GPU resources are shared and the Human
+  Owner may pause future training for other users. Any later T001/training
+  HANDOFF must require periodic atomic checkpoints, signal-safe pause/resume,
+  and verified GPU release. This R6 used no GPU and implements none of that
+  future training behavior.
+- Prohibited actions: no merge/auto-merge, force, deletion, tag, release,
+  visibility/default-branch/billing change, source/workflow edit, T001/T002/T005,
+  Gate 0, GPU/model/data/Docker, candidate execution, final access, or external
+  release occurred.
+- Task T000-R6: pass - exact reviewed main bootstrap, unchanged-PR trigger,
+  exact-head passing CI, and effective main-only protection are established.
+  T001 remains unauthorized until a fresh independent Reviewer closes T000.
+- Reviewer attention: independently reread the committed ledger-only diff,
+  mode-600 evidence, current PR/check/protection/refs, and the disclosed no-op
+  HTTP 400 before deciding T000 closure and any T001 authorization.
+- Status: HANDED BACK FOR REVIEW
