@@ -291,3 +291,43 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
 - Reviewer attention: independently verify the containing commit and local
   transport metadata without contacting the Git repository.
 - Status: HANDED BACK FOR REVIEW
+
+### [2026-07-11] Review T000-R2 - formal independent review
+- Reviewed object: commit
+  `6f679b557e3b99f154e4cfbf3247e116da4904f9`, parent
+  `3a8010adc162febd0889ee0f6e62eab37f580758`, on
+  `fix/t000-r2-github-transport`; the worktree was clean and its tracked diff
+  modified only the append-only `PROGRESS.md` ledger.
+- Reviewer platform: Codex
+- Reviewer independence: PASS - this fresh role-locked Reviewer did not execute T000-R2, generate or inspect the private key, authenticate to GitHub, or contact the Git repository; it independently verified the fixed commit and permitted local evidence
+- Local transport evidence: `origin` is exactly
+  `git@github.com:Crushinrain/code-verifier-triage.git`; `core.sshCommand`
+  originates from `.git/config` and enforces the dedicated key,
+  `IdentitiesOnly=yes`, `BatchMode=yes`, project-local known-hosts, and
+  `StrictHostKeyChecking=yes`.
+- Key evidence: without reading private-key content, metadata showed private mode
+  600, public mode 644, and known-hosts mode 600. The public-key fingerprint is
+  `SHA256:uEvYGvdUeVBES69/F5njgZcSIKJm+mGZrqyrx33iEoA`; the sole
+  known-host ED25519 fingerprint is
+  `SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU`.
+- Isolation evidence: local remote-tracking refs were empty and
+  `.git/FETCH_HEAD` was absent, consistent with the recorded no-auth/fetch/push
+  boundary. Local `main` remained
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`; parent HEAD/config/index
+  hashes matched the ledger baseline with only the pre-existing
+  `M PV_forecast`.
+- Acceptance result: PASS - dedicated key creation, official GitHub host-key
+  verification, repository-local strict SSH transport, exact origin, public-key
+  delivery, tracked scope, and the pre-authentication stop all satisfy T000-R2.
+- New Human Owner fact: after the reviewed commit, the owner explicitly confirmed
+  that the deploy key was added to the named GitHub repository with write access.
+  This fact authorizes only the bounded T000-R3 authentication, empty-remote
+  check, and initial push in the current HANDOFF; it is not yet independently
+  verified hosted evidence.
+- Remaining condition: hosted CI and main-branch protection are still unverified.
+  T001, T005, research Gate 0, ruleset/branch-protection/PR/API mutation, and all
+  broader remote actions remain unauthorized.
+- Decision rationale: T000-R2 fully satisfies its bounded acceptance, but T000
+  cannot be unconditionally approved until real hosted main protection is
+  independently evidenced.
+- Gate decision: CONDITIONAL APPROVE
