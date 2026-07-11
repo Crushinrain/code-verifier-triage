@@ -573,3 +573,99 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
 - Decision rationale: T000-R4 fully satisfies its bounded objective, while T000
   remains conditional until the hosted control is independently evidenced.
 - Gate decision: CONDITIONAL APPROVE
+### [2026-07-12 02:57 +08:00] Batch T000-R5 - hosted controls handback
+- Active role: EXECUTOR; this fresh role-locked context did not perform or alter
+  the T000-R4 formal review and did not approve its own work.
+- Local boundary: created `fix/t000-r5-hosted-controls` from clean
+  `review/t000-r4` tip `fa79194aba18ec69e192ee81c24a3262605f79ed`;
+  that review tip has parent R4 execution commit
+  `4cfd5cbcf1c9689b1017db549924be10864c8293`. Local `main` remained
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`.
+- Offline transport preflight: pass - exact origin, repository-local strict SSH
+  command, GitHub known-host fingerprint
+  `SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU`, deploy public-key
+  fingerprint `SHA256:uEvYGvdUeVBES69/F5njgZcSIKJm+mGZrqyrx33iEoA`, and private-key mode
+  600 matched R4 evidence. The eight reviewed remote-tracking refs matched their
+  recorded SHAs and the R4/R5 remote-tracking refs were absent before publication.
+- Initial remote state: one read-only `git ls-remote --heads origin` returned
+  exactly the eight R4-reviewed heads and no others. The single non-forced atomic
+  publication returned rc 0, zero stderr bytes, and three `[new branch]` records
+  for only `fix/t000-r4-safe-probe` at
+  `4cfd5cbcf1c9689b1017db549924be10864c8293`, `review/t000-r4` at
+  `fa79194aba18ec69e192ee81c24a3262605f79ed`, and
+  `fix/t000-r5-hosted-controls` initially at
+  `fa79194aba18ec69e192ee81c24a3262605f79ed`.
+- Publication evidence: mode-600 `.git/t000-r5-initial-publish.json`, SHA-256
+  `c3ef66824ccaf541c7fdf125004a8a40281f4d3e87f6a521a1698fc1d760c40e`.
+- Browser/CLI boundary: the in-app browser runtime reported no available browser
+  and no server `gh` executable existed. No login, device flow, token, password,
+  cookie, credential refresh, or credential output occurred.
+- Official CLI installation: pass - pinned GitHub CLI 2.96.0 was downloaded only
+  from `https://github.com/cli/cli/releases/download/v2.96.0/`; official archive
+  and checksum URLs were used, archive SHA-256
+  `83d5c2ccad5498f58bf6368acb1ab32588cf43ab3a4b1c301bf36328b1c8bd60`
+  matched the official checksum, and only the mode-700 binary was retained under
+  `.git/t000-r5-tools/gh`. No PATH, profile, package database, system, or global
+  state was changed. Evidence `.git/t000-r5-gh-install.json` SHA-256 is
+  `52fa528d1ac848f360ef4e39ed6af69938449a5e617597251963cdc459bb0d4e`.
+- Administrative session: pass - pre-existing `gh auth status` reported exactly
+  one active `Crushinrain` account in state `success`, with no authentication
+  mutation. Repository probe proved exact private repository
+  `Crushinrain/code-verifier-triage`, default branch `main`, and
+  `permissions.admin=true`. Auth evidence SHA-256 is
+  `eed654d76a85c8551d9a3ba9c52de1dd2a81928220b6af0d14cbbbdc1382c41d`;
+  administrative probe evidence SHA-256 is
+  `304390e8980d371036819757d8a3c2e235681d0ddeee0150972ee39057e4a61a`.
+- Unique PR: pass - a repeated read-only query proved zero matching open PRs,
+  then exactly one PR was created: PR #1,
+  `https://github.com/Crushinrain/code-verifier-triage/pull/1`, base `main` at
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`, head
+  `fix/t000-r5-hosted-controls` initially at
+  `fa79194aba18ec69e192ee81c24a3262605f79ed`, open and unmerged. Its title/body
+  state that merge is unauthorized, T001 is absent, and hosted evidence is
+  pending. PR evidence SHA-256 is
+  `319acc88cfe10650a10bcb97fd05d3ac04d6f5123bfaa45495d51bfeeccceb53`.
+- CI observation: fail/block - GitHub reported Actions enabled with
+  `allowed_actions=all`, but after PR creation the repository had zero registered
+  workflows, the PR head had zero pull-request workflow runs, and its commit had
+  zero check runs. Therefore no real passing check context exists and none can be
+  bound. The workflow file exists only in the PR history while current `main`
+  remains the bootstrap root; this batch forbids both merge and direct main push.
+- Protected-main observation: fail/block - both read-only repository-ruleset and
+  classic branch-protection APIs returned HTTP 403 with the exact non-sensitive
+  message `Upgrade to GitHub Pro or make this repository public to enable this
+  feature.` The repository is private. R5 forbids visibility change, plan change,
+  merge, direct main push, and weakened or fabricated enforcement, so no hosted
+  mutation was attempted after CI failed to yield a context.
+- Hosted blocker evidence: mode-600 `.git/t000-r5-hosted-blocker.json`, SHA-256
+  `1e86e363a9ee37dfe8882477c5e9dded077381ccf7ed25c685e3b6f37fe40c5a`,
+  observed at `2026-07-11T18:55:01.172274+00:00`; it records PR #1 open and
+  unmerged, `main` unchanged, workflow/run/check counts all zero, and both 403s.
+- Isolation: project `.git/config`, known-hosts, and deploy public key retained
+  SHA-256 values `0f53951e2cef9ee904f098689ba89b81b8ed585969f6f49ddda1d6052ab28a6a`,
+  `6233fddbb0a29afc8c4e8c699733c1a188c3a41f2fb63a2640653dc4aea624ce`,
+  and `e5cbab4ed8f7a5533d9de64398530e9d6abb50516ade720aac61d3df53b37c4c`.
+  Parent HEAD remained `4ecbc0f2bc7788a877684f7c896607a9bba78fb2`; parent
+  HEAD/config/index hashes matched the original ledger baseline and
+  `PV_forecast` retained only its pre-existing modification.
+- Prohibited actions: no merge, auto-merge, direct/force main push, deletion,
+  tag, release, fetch/pull/rebase/reset, visibility or billing change, workflow
+  edit, implementation/schema/contract/approval/Claim change, T001/T005, Gate 0,
+  GPU/model/data/Docker, candidate execution, final access, or external release.
+- New Human fact for the next Reviewer: the Human Owner explicitly requested the
+  shortest path to GPU use and authorized a four-GPU, 30-minute T001 smoke only
+  after T000 is closed. This fact does not amend the current HANDOFF and did not
+  authorize this R5 Executor to begin T001 or use any GPU.
+- Task T000-R5: fail/block - required branch publication and unique open PR pass,
+  but real passing CI and enforceable protected-main controls cannot be produced
+  under the current private GitHub Free hosted state without a forbidden merge,
+  visibility/billing change, or control weakening.
+- Commit/PR binding: this block is bound by its sole containing T000-R5 commit;
+  the fresh Reviewer must resolve that SHA, verify it is exactly one commit over
+  `fa79194aba18ec69e192ee81c24a3262605f79ed`, and verify PR #1 head equals it.
+- Reviewer attention: independently reread the mode-600 evidence and current
+  hosted state. Do not infer CI or protection. Decide the minimal authorized
+  remediation for the private-plan/initial-workflow bootstrap blocker before
+  T000 closure; only after T000 closes may a fresh Executor receive the requested
+  four-GPU 30-minute T001 smoke HANDOFF.
+- Status: HANDED BACK FOR REVIEW
