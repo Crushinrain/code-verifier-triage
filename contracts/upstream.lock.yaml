@@ -1,4 +1,5 @@
-lock_generated_at: '2026-07-11'
+version: 1
+lock_generated_at: '2026-07-12'
 rule: Gate 0 克隆后必须用完整 SHA、模型/数据 revision 与容器 digest 替换所有待解析项；不得只写 main。
 repositories:
 - name: CodeScaler
@@ -18,21 +19,21 @@ repositories:
   license_status: Apache-2.0
 models:
 - id: Qwen/Qwen3-1.7B-Base
-  revision: RESOLVE_WITH_HF_API_AT_GATE0
-  license: VERIFY_MODEL_CARD
+  revision: ea980cb0a6c2ae4b936e82123acc929f1cec04c1
+  license: apache-2.0 per official model card metadata
 - id: LARK-Lab/CodeScaler-1.7B
-  revision: RESOLVE_WITH_HF_API_AT_GATE0
+  revision: 3db4f021f8e8b7b94549577de0175cfea5514dfc
   license: MIT per model card
 - id: Qwen/Qwen3-4B-Base
-  revision: RESOLVE_ONLY_IF_CONFIRMATION_RUN
-  license: VERIFY_MODEL_CARD
+  revision: 906bfd4b4dc7f14ee4320094d8b41684abff8539
+  license: apache-2.0 per official model card metadata
 datasets:
 - id: agentica-org/DeepCoder-Preview-Dataset
   revision: e0c06632fc6cda32a81827a63308505fc0a67abb
   role: 主训练问题与可执行测试
-  license: VERIFY_DATASET_CARD_AND_SOURCE_SUBSETS
+  license: MIT per official dataset card metadata; source-subset redistribution remains for T003 review
 - id: LARK-Lab/CodeScalerPair-51K
-  revision: RESOLVE_WITH_HF_API_AT_GATE0
+  revision: f171a14323c0a7858261cfce2d4e8a0ab177c06e
   role: 上游偏好数据分析/可选 hard-negative 初始化；不得作为唯一校准集
   license: MIT per dataset card
 containers:
