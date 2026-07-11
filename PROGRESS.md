@@ -97,3 +97,45 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
   state, parent hashes, unchanged 91-entry manifest, and the branch-protection
   blocker. Do not authorize or begin T001 from this handback.
 - Status: HANDED BACK FOR REVIEW
+
+### [2026-07-11 21:00 +08:00] Review T000 - formal independent review
+- Reviewed object: root commit
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`, tree
+  `26f33d528838589e5039aa0f836aa79b4714525b`, on `main`; the worktree was
+  clean at review start and the repository had exactly one root commit.
+- Reviewer platform: Codex
+- Reviewer independence: PASS - This fresh role-locked Reviewer context did not
+  execute T000 or modify implementation, starter-pack/raw evidence, contracts,
+  approvals, or Claims; it independently reread the fixed commit and ran only
+  permitted validation and review-branch bookkeeping before this semantic write.
+- Standards finding: FAIL - T000 acceptance requires Agents to be unable to
+  commit directly to `main`, but the reviewed Executor-authored root commit is
+  directly on `main`; `git remote -v` is empty and no hosted branch-protection or
+  PR-enforcement evidence exists.
+- Spec finding: FAIL - authoritative `tasks/task_graph.yaml#T000` explicitly
+  requires enabling pre-commit and CI. The reviewed tree contains neither a
+  `.pre-commit-config.yaml`/`.yml` file nor any `.github/**` path, while the
+  HANDOFF and ticket defer both to T005 despite the task graph being the sole
+  operational authority.
+- Independent evidence passed: `sha256sum -c MANIFEST.sha256` verified 91/91
+  immutable starter files; `scripts/validate_bundle.py` reported 14 contracts,
+  6 schemas, 69 tasks, and 7 Gate checklists; workflow inspect/validate reported
+  `REVIEW_REQUIRED` before review and zero errors/warnings.
+- Independent evidence passed: the installed workflow skill contained exactly
+  the expected 18 files and every SHA-256 matched the local reviewed source;
+  its suite returned 28 tests and 10 subtests passed.
+- Independent evidence passed: generated/heavy paths are ignored and none is
+  tracked; the parent repository HEAD plus `.git/HEAD`, config, and index hashes
+  match the handback evidence, with the pre-existing `M PV_forecast` retained.
+- Accepted subset: starter integrity, local workflow bootstrap, one-task/one-root
+  commit boundary, artifact hygiene, parent isolation, licensing inventory, and
+  absence of T001/research artifacts all pass independently.
+- Blocking conditions: add the minimal pre-commit and CI controls on a non-main
+  repair branch, then obtain real remote/protection evidence or an explicitly
+  approved formal change request/waiver for the unavailable hosted control.
+- Authorization result: T001, research Gate 0, and every gated action remain
+  prohibited; only repair batch T000-R1 in the current HANDOFF may be executed by
+  a fresh role-locked Executor.
+- Decision rationale: review evidence is sufficient, but two mandatory T000
+  requirements are unmet, so neither approval nor conditional approval is valid.
+- Gate decision: REJECT

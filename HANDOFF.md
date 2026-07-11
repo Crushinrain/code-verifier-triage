@@ -2,68 +2,100 @@
 
 ## Batch identity
 
-- Task ID: T000
-- Title: Initialize repository, governance control plane, and minimal structure
+- Repair batch: T000-R1
+- Parent Task ID: T000
+- Title: Add the missing minimal pre-commit and CI bootstrap controls
 - Active role: EXECUTOR
-- Authorization: Human Owner continuation on 2026-07-11, relayed by the
-  role-locked Reviewer, explicitly including `git init` and workflow init.
+- Required context: a fresh role-locked Executor that did not perform the T000
+  formal review
+- Base: current tip of `review/t000-initial`
+- Required work branch: `fix/t000-r1-controls` (must be created before edits)
 - GPU required: no
-- Human approval flag in task graph: false
-- Completion boundary: hand back T000 and stop; T001 is not authorized.
+- T001 authorization: no
 
 ## Single objective
 
-Copy the verified starter pack into an independent nested Git repository at
-`/data3/xc/code-verifier-triage`, initialize the governed workflow, add the
-minimum missing T000 records, validate the result, and bind it in one root commit.
+Repair only the missing T000 pre-commit and CI implementation on a non-main
+feature branch, validate it with already-installed tooling, append one bounded
+handback, and stop. The unavailable hosted main-protection control remains an
+explicit blocker and must not be reported as passed.
 
 ## Authorized writes
 
-- `/data3/xc/code-verifier-triage/**`
-- `/data3/xc/.agents/skills/governing-project-workflows/**` only for the
-  non-overwriting skill installation authorized for this batch
+- `.pre-commit-config.yaml`
+- `.github/workflows/contracts.yml`
+- `PROGRESS.md`, tail append only for execution facts and the T000-R1 handback
+- Repository-local Git metadata only as needed to create
+  `fix/t000-r1-controls`, stage the two implementation files plus ledger append,
+  and create one repair commit; `refs/heads/main` must not change
+
+## Required implementation
+
+1. Create `fix/t000-r1-controls` from the current
+   `review/t000-initial` tip before changing files.
+2. Add a minimal local pre-commit configuration that invokes the existing
+   `scripts/validate_bundle.py .`, uses no remote hook repository, and does not
+   install or upgrade dependencies.
+3. Add a minimal hosted CI workflow that runs the existing bundle validator for
+   pull requests and records the intended main-branch check. Do not expand into
+   T005 negative tests, schema changes, or contract-freeze implementation.
+4. Validate syntax and the underlying command with the existing
+   `/data3/xc/.conda/envs/d2l/bin/python`. Run `pre-commit` only if it is already
+   installed; otherwise record that tooling limitation without installing it.
 
 ## Forbidden writes and actions
 
-- `/data3/xc/.git/**`, `/data3/xc/PV_forecast/**`, and every sibling project
-- Existing remote skills other than the new named skill directory
-- `contracts/**`, `approvals/**`, and the legacy planning Claim/task files
-- Any final-test path, GPU task, candidate-code execution, Docker change,
-  upstream clone, model/data download, or dependency/environment installation
-- CI or pre-commit implementation reserved for T005
-- Creating or guessing a Git remote, changing global Git config, or starting T001
-
-## Required outputs
-
-- The verified starter pack and independent `.git` repository on branch `main`
-- `.workflow/project.json`, `PLAN.md`, `HANDOFF.md`, `PROGRESS.md`, and
-  `REVIEW_PROTOCOL.md`
-- `pyproject.toml`, `THIRD_PARTY_NOTICES.md`, and `LICENSE_AUDIT.md`
-- `tasks/tickets/T000.md` and
-  `docs/governance/T000_GOVERNANCE_GAPS.md`
-- One meaningful T000 root commit and an append-only handback
+- Any working-tree path other than the three authorized paths above
+- Any commit, merge, rebase, reset, or ref update on `main`
+- Creating, guessing, or pushing a Git remote; claiming hosted protection passed
+- `/data3/xc/.git/**`, `/data3/xc/PV_forecast/**`, sibling projects, or global
+  Git configuration
+- `contracts/**`, `approvals/**`, Claims, `MANIFEST.sha256`, task graph, schemas,
+  starter-pack files, or raw evidence
+- Dependency/environment installation, network fetches, Docker changes,
+  candidate execution, upstream clone, model/data/final access, GPU use, T001,
+  T005, research Gate 0, or any other gated action
 
 ## Acceptance
 
-| Criterion | Required evidence |
-|---|---|
-| Starter-pack integrity | 91/91 entries pass `sha256sum -c MANIFEST.sha256` |
-| Bundle structure | Remote `scripts/validate_bundle.py` passes using an already-existing interpreter |
-| Workflow health | `workflow.py inspect` and `workflow.py validate` return no validation/approval errors after handback |
-| Skill integrity | 18 installed files match local SHA-256 values; 28 tests and 10 subtests pass |
-| Git boundary | Branch is `main`; one root commit contains T000; worktree is clean |
-| Artifact hygiene | Heavy/generated paths remain ignored and no such artifact is committed |
-| Parent isolation | Parent HEAD/config/index hashes are unchanged; pre-existing `M PV_forecast` is untouched |
-| Main protection | Hosting-level protection proves Agents cannot commit directly to `main` |
+- Work begins and ends on `fix/t000-r1-controls`; `main` remains exactly
+  `90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`.
+- The committed tree contains `.pre-commit-config.yaml` and
+  `.github/workflows/contracts.yml`; both are syntactically valid and invoke the
+  existing bundle validator without changing its semantics.
+- `sha256sum -c MANIFEST.sha256` still passes 91/91, and
+  `scripts/validate_bundle.py` still reports 14 contracts, 6 schemas, 69 tasks,
+  and 7 Gate checklists.
+- Workflow validate returns zero errors/warnings before handback; after the
+  handback, inspect reports review required for a fresh Reviewer.
+- Exactly one T000-R1 repair commit exists on the feature branch, the worktree is
+  clean, and no generated/heavy artifact is tracked.
+- Hosted main protection remains `fail/block` unless the Human Owner supplies
+  the external information below; this repair does not authorize T001.
 
-## Known blocking limitation
+## Stop conditions
 
-No Git remote URL or hosting administrator authority was supplied. Therefore
-hosting-level `main` branch protection and a PR rule cannot be configured or
-verified in T000. The bootstrap root commit is an explicitly authorized local
-exception; all subsequent work must use a task branch/PR once a remote exists.
+- The current branch is `main`, the review base is missing, or the worktree is
+  not clean before repair.
+- A requested change exceeds the two implementation files and ledger tail
+  append, requires installation/network access, or touches a forbidden path.
+- Any instruction asks the Executor to approve its own repair, begin T001/T005,
+  or reinterpret the branch-protection blocker as passed.
 
-## Gates
+## Required handback
 
-No governed action is configured or authorized by this HANDOFF. T000 does not
-approve research Gate 0 or any later task.
+Append one `Batch T000-R1 - self-check & handback` block to `PROGRESS.md` with
+exact commands and outcomes, both implementation file hashes, branch/commit
+evidence, the unchanged `main` SHA, and the still-blocked hosted-protection item.
+Set status to `HANDED BACK FOR REVIEW`, then stop for a fresh Reviewer.
+
+## External information still required
+
+The Human Owner must provide either:
+
+1. the real Git remote URL, hosting provider/repository identity, and
+   administrator able to configure and expose branch-protection evidence; or
+2. an explicitly approved formal change request/waiver whose scope replaces the
+   hosted-protection acceptance item.
+
+The Executor must not infer either option from prose or create it independently.
