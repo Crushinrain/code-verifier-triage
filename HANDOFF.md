@@ -1,171 +1,150 @@
-# HANDOFF - Current batch
+# HANDOFF - Gate 0 parallel launch wave
 
-## Batch identity
+## Authorization
 
-- Repair batch: T000-R6
-- Parent Task ID: T000
-- Title: Bootstrap default-branch CI and enforce public protected main
-- Active role: EXECUTOR
-- Required context: a fresh role-locked Executor that did not perform the
-  T000-R5 formal review
-- Base: current tip of `review/t000-r5`
-- Required work branch: `fix/t000-r6-public-controls`
-- GPU required: no
-- T001 authorization: no; the four-GPU 30-minute T001 smoke becomes eligible
-  only after a fresh Reviewer closes T000
+- Closed predecessor: T000 (formal APPROVE in `review/t000-r6`)
+- Authorized tasks: T001, T002, and T005 only
+- Active roles: three fresh role-locked EXECUTOR contexts, one task per context
+- Reviewed base: the single commit containing this HANDOFF and the T000-R6
+  formal review on `review/t000-r6`; the dispatcher MUST resolve and give the
+  same exact SHA to all three Executors before any work begins
+- Human approval: not required by the authoritative task graph; the Human Owner
+  explicitly requested autonomous execution and the shortest safe path to GPU use
+- Gate 0 decision: not granted; this wave produces evidence for later review
 
-## Single objective
+No Executor may switch roles, approve its own task, start a dependent task, merge
+to `main`, use final data, execute candidate code, or start policy/model training.
 
-Use the Human Owner's completed private-to-public visibility change to close
-the remaining T000 hosted-control condition with the smallest reproducible
-bootstrap: install the already-reviewed workflow commit on `main` by one exact
-fast-forward, reuse PR #1 to obtain a real passing check on its unchanged R5
-head, enforce public protected-main controls against that exact check, record
-evidence, and stop without merging or editing implementation.
+## Isolation and ledger serialization
 
-## Why this bootstrap is necessary and bounded
+Create three independent worktrees from the exact reviewed base:
 
-The fresh R5 review observed a public repository with administrative access,
-PR #1 open and unmerged at head `1360e76dad6eb13f9495a17b35088f274dd218cd`,
-but zero registered workflows, zero runs/checks for that head, no ruleset, and
-unprotected `main`. The workflow exists in reviewed commit
-`f34dbbaa5c643b7ec2b59a9df0587eef9af50bda` but not in current `main` at
-`90fc21ec1a4f3acce23ad13dc66f7af66c55bd94`.
+| Task | Branch | Worktree |
+|---|---|---|
+| T001 | `task/t001-hardware-smoke` | `/tmp/code-verifier-triage-T001` |
+| T002 | `task/t002-upstream-lock` | `/tmp/code-verifier-triage-T002` |
+| T005 | `task/t005-contract-ci` | `/tmp/code-verifier-triage-T005` |
 
-GitHub's official event documentation states that a `pull_request` workflow
-without explicit activity types runs for `opened`, `synchronize`, and
-`reopened`, while the workflow must exist on the default branch. Therefore the
-only authorized default-branch update is the already-reviewed fast-forward to
-`f34dbba`; after it registers, PR #1 may be closed and immediately reopened
-once to produce the documented `reopened` event. No new commit, workflow edit,
-empty commit, or implementation change is needed.
+- The primary worktree `/data3/xc/code-verifier-triage` is Reviewer-owned during
+  this wave. Executors MUST NOT switch it, stage in it, or edit its files.
+- Each Executor edits and commits only its isolated branch/worktree, including
+  exactly one tail handback block in that branch's copy of `PROGRESS.md`.
+- No shared file outside Git metadata may be used as a ledger. After independent
+  reviews, a Reviewer will serialize accepted task commits and replay the exact
+  ledger tails in task-ID order; concurrent cherry-picks of `PROGRESS.md` are
+  forbidden.
+- One Task ID maps to one reviewable commit boundary. Generated evidence remains
+  ignored/untracked unless the task graph names a tracked report or contract.
 
-Official basis:
-`https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request`.
+## T001 - immediate four-GPU inventory and synthetic smoke
 
-## Authorized writes and hosted actions
+### Scope
 
-- Create `fix/t000-r6-public-controls` from clean `review/t000-r5`
-- Mode-600 temporary evidence only under `.git/t000-r6-*`
-- `PROGRESS.md`, tail append only, and exactly one T000-R6 handback commit
-- Non-forced publication of `review/t000-r5` and the R6 branch
-- Exactly one guarded fast-forward update of remote `main` from `90fc21e` to
-  existing reviewed commit `f34dbba`
-- Exactly one close then one reopen of PR #1, only after the default-branch
-  workflow is registered and only while the PR is open, unmerged, and at the
-  expected immutable head
-- Read-only CI observation followed by one classic branch-protection mutation
-  on `main`, or one main-only active ruleset if classic protection is
-  unavailable, using the exact successful check context returned by GitHub
+1. Record host/OS/kernel, CPU/RAM, filesystems/free space, cgroups v2, Docker
+   client/server state, NVIDIA driver/runtime, GPU UUID/name/total memory/current
+   processes, and `nvidia-smi topo -m` in:
+   - `artifacts/inventory/machine_inventory.json`
+   - `reports/gate0/hardware.md`
+2. Reconfirm all four GPUs are available without evicting another user's process.
+   If any GPU has an active foreign compute process or insufficient headroom,
+   wait without mutation and retry at bounded intervals; never kill or preempt it.
+3. Run one reproducible four-rank NCCL synthetic smoke for 1800 uninterrupted
+   seconds, allocating at most 16 GiB per GPU. Exercise allocation/read-write and
+   repeated all-reduce with integrity checks and 60-second heartbeats. Use no
+   model, dataset, optimizer, trainer, candidate program, Docker image, or network
+   service. Record exact command, interpreter/Torch/CUDA/NCCL versions, rank/PID,
+   elapsed time, failures, peak memory, and pre/post GPU process state.
 
-No source/workflow/schema/contract/approval/Claim edit, PR merge, visibility
-change, credential action, package installation, or GPU action is authorized.
+### Shared-GPU pause/stop contract
 
-## Mandatory preflight and fail-closed boundary
+- Control sentinel: `/data3/xc/code-verifier-triage/.git/T001.PAUSE`.
+- On `SIGUSR1`, `SIGTERM`, or sentinel detection, finish only the current bounded
+  collective, atomically flush partial evidence with status `PAUSED` or `STOPPED`,
+  terminate all ranks/children, and poll `nvidia-smi` until the four task PIDs are
+  absent. Record release proof and stop.
+- A paused/stopped run MUST NOT be reported as the required 1800-second PASS.
+  Resume means a fresh uninterrupted 1800-second smoke with a new Run ID after
+  the sentinel is removed; preserve the partial run as negative/partial evidence.
+- Any OOM, NCCL error/hang, integrity mismatch, thermal/ECC issue, foreign-process
+  conflict, or failure to release GPUs fails closed and is recorded.
 
-1. Start at clean `review/t000-r5`; create only
-   `fix/t000-r6-public-controls`. Verify local `main` is `90fc21e`, R5 is
-   `1360e76`, and reviewed workflow bootstrap commit is exactly `f34dbba`.
-2. Re-run workflow `inspect` and `validate`; verify the R5 commit is a single
-   append-only `PROGRESS.md` change over `fa79194` and all starter validation
-   checks still pass.
-3. Reverify exact origin, repository-local SSH command, host/deploy-key
-   fingerprints, project/parent worktree isolation, and that no key/config or
-   implementation file changed.
-4. With the pinned official `.git/t000-r5-tools/gh`, prove the active account,
-   exact repository, `visibility=public`, `permissions.admin=true`, default
-   branch `main`, remote `main=90fc21e`, PR #1 open/unmerged with base `main`
-   and head `1360e76`, and no unexpected PR/ruleset/protection state. Never
-   print or persist any token/cookie/password.
-5. Re-query workflows, runs, and check-runs before mutation. If a genuine
-   successful PR-head check already exists, skip the main bootstrap and PR
-   state cycle and proceed to enforcement. Any conflicting or failing state
-   fails closed.
+### Acceptance
 
-## Minimal default-branch and PR trigger sequence
+- Inventory JSON is machine-readable and the report binds its checksum.
+- Exactly four ranks complete an uninterrupted >=1800-second synthetic smoke;
+  each GPU demonstrates the bounded memory and NCCL integrity checks.
+- Final evidence proves no T001 process remains and GPU memory is released.
 
-Only when no real PR-head check exists:
+## T002 - official upstream and Hugging Face metadata lock
 
-1. Confirm `f34dbba` is a descendant of `90fc21e`, contains the reviewed
-   `.github/workflows/contracts.yml`, and remote `main` still equals `90fc21e`.
-2. Execute one non-forced explicit fast-forward refspec only:
-   `git push --porcelain origin
-   f34dbbaa5c643b7ec2b59a9df0587eef9af50bda:refs/heads/main`.
-   No force, deletion, tags, mirror, all-branches, upstream, fetch, pull,
-   merge, rebase, or reset is allowed.
-3. Reread remote `main`; require exactly `f34dbba`. Wait until GitHub registers
-   `.github/workflows/contracts.yml`. The push may produce a main-branch run;
-   record it but do not use it as proof of the PR-head requirement.
-4. Reread PR #1 and require open, unmerged, base `main`, head ref
-   `fix/t000-r5-hosted-controls`, and immutable head `1360e76`. Close exactly
-   PR #1, verify closed and unmerged, then immediately reopen exactly PR #1 and
-   verify open/unmerged with the same head. Do not close any other PR.
-5. Poll only the resulting PR/head workflow run and check-runs with bounded
-   intervals and an overall 20-minute deadline. Require a completed successful
-   real check on exact head `1360e76`; record workflow/run/job/check IDs, URLs,
-   event, timestamps, head/base, and exact context. Do not rerun, approve,
-   cancel, edit, or weaken a failed/pending workflow.
+### Scope
 
-## Protected-main enforcement
+1. Resolve and shallow/full clone only the official URLs already named in
+   `contracts/upstream.lock.yaml`: CodeScaler, RewardUQ, and SandboxFusion.
+   Verify full immutable commit SHAs, origin URLs, reachability, and clean state.
+   Store clones outside Git-tracked paths; do not vendor source.
+2. Query official Hugging Face API metadata only (no weights or dataset payloads)
+   for Qwen/Qwen3-1.7B-Base, LARK-Lab/CodeScaler-1.7B,
+   Qwen/Qwen3-4B-Base, agentica-org/DeepCoder-Preview-Dataset, and
+   LARK-Lab/CodeScalerPair-51K. Record immutable revisions, canonical IDs,
+   request URLs/timestamps, and card/license metadata with raw-response hashes.
+3. Replace every repository/model/dataset `main` or `RESOLVE*` placeholder in
+   `contracts/upstream.lock.yaml` using only observed official metadata. Do not
+   claim a container digest before T018 builds it. Emit
+   `artifacts/provenance/upstream_manifest.json` and bind the lock-file hash.
 
-After the exact successful PR-head context is known, establish protection only
-for `main`. Prefer classic branch protection with:
+### Acceptance
 
-- required status checks enabled, strict/up-to-date, containing only the exact
-  successful check context observed on PR head `1360e76`
-- pull request required before updates, with zero required approving reviews
-- administrator enforcement enabled
-- restrictions absent and no bypass actor/role
-- force pushes disabled and deletions disabled
-- no signed-commit, merge-queue, deployment, code-owner, conversation,
-  linear-history, lock, or unrelated rule
+- All official repository URLs and full SHAs are reproducible and clean.
+- No repository/model/dataset entry contains `main`, `latest`, or `RESOLVE*`.
+- Manifest and lock hashes agree; no weight, data payload, token, or copied
+  upstream source enters Git.
 
-If classic protection is unavailable, one active ruleset targeting exactly
-`refs/heads/main` with equivalent fields and empty bypass actors is authorized.
-Do not create both. Reread the effective hosted configuration and prove direct
-updates, force pushes, and deletion are blocked for all actors, including
-administrators, and the exact passing check is required.
+## T005 - contract, schema, task-graph CI negatives and active digest
 
-## Final ledger and branch publication
+### Scope
 
-1. Append one `Batch T000-R6 - public hosted controls handback` block recording
-   exact local/remote SHAs, public/admin and PR facts, every mutation, CI
-   identity/conclusion, effective protection fields, checksums of mode-600
-   evidence, isolation, and any fail-closed reason.
-2. Create exactly one local handback commit on
-   `fix/t000-r6-public-controls`; no implementation or semantic-document edit
-   other than the ledger tail is allowed.
-3. Non-force publish `review/t000-r5`, publish the R6 branch at its review base,
-   then update the R6 branch once to the handback commit so evidence is durable.
-   Never update `main` beyond exact `f34dbba`.
-4. Final reread must prove PR #1 open/unmerged at head `1360e76`, its exact
-   check passing, remote `main=f34dbba`, effective protection active, branch
-   refs correct, local worktree clean, and project/parent isolation intact.
-5. Set `Status: HANDED BACK FOR REVIEW` and stop. Only a fresh Reviewer may
-   close T000 and authorize T001/T002/T005; the Executor must not use GPUs.
+1. Extend the existing bundle validator/CI without weakening the reviewed
+   `contracts` check. Add `tests/test_contracts.py` covering the valid starter
+   bundle plus isolated negative fixtures for malformed schema, schema-invalid
+   documents, missing dependency, and cyclic task dependencies.
+2. Add a deterministic active-contract digest over the authoritative contract
+   set, with explicit ordered paths and SHA-256, and verify it in CI. Do not edit
+   contract meaning merely to satisfy a test.
+3. Keep CI least-privilege, PR/push triggered, pinned where practical, and free
+   of secrets/network-dependent tests. Re-run the 91-entry starter manifest,
+   bundle validator, positive tests, every negative test, workflow inspect, and
+   workflow validate.
 
-## Forbidden actions
+### Acceptance
 
-- Merge/auto-merge PR #1, merge any branch, or direct-update `main` to any SHA
-  other than the single exact `90fc21e -> f34dbba` fast-forward
-- Any force push, deletion, tag, release, default-branch/visibility/billing
-  change, wildcard ruleset, bypass, weakened CI/protection, or fabricated status
-- New commit used only to trigger CI, workflow/source/config/schema/contract/
-  approval/Claim edit, or implementation repair
-- Login/device flow, token/cookie/password output, key/Git/SSH config change,
-  installation, sudo/root/system/global mutation
-- T001/T002/T005 execution, Gate 0, GPU/model/data/Docker, candidate execution,
-  final access, long training, or external release
+- Normal bundle and active digest pass; every specified corruption fails for the
+  intended reason, including dependency-cycle rejection.
+- CI configuration invokes those checks and remains compatible with required
+  protected-main context `contracts`.
+- Frozen approvals, Claims, data, and unrelated implementation are unchanged.
 
-## Acceptance
+## Binding checkpoint policy for every later model-training HANDOFF
 
-- Public/admin repository identity, exact refs, single PR, workflow/run/check,
-  and every hosted mutation are independently reproducible from saved evidence.
-- Remote `main` moves once and only by the exact reviewed fast-forward to
-  `f34dbba`; PR #1 remains open/unmerged at immutable head `1360e76`.
-- A real PR-triggered check on exact head `1360e76` completes successfully.
-- Main-only enforcement requires PRs and that exact check, enforces admins,
-  blocks force/deletion, and has no bypass actor or unrelated rule.
-- One bounded R6 ledger-only handback commit exists; worktrees, keys/config,
-  frozen content, approvals, Claims, implementation, and prohibited resources
-  remain isolated.
+This wave does not authorize training. A future Reviewer MUST carry these exact
+minimums into any training manifest before GPUs are used for model optimization:
+
+- LoRA/smoke: atomic checkpoint every 10 minutes or 50 optimizer steps,
+  whichever occurs first.
+- Full/FSDP: atomic checkpoint every 20 minutes or 100 optimizer steps,
+  whichever occurs first, and never more than 30 minutes between checkpoints.
+- `SIGUSR1`, `SIGTERM`, or the declared `PAUSE` sentinel: complete the current
+  atomic optimizer step, atomically checkpoint, stop all children, and prove GPU
+  release. Retain `latest3` plus named milestones.
+- Resume validation MUST restore and verify model/adapters, optimizer, scheduler,
+  scaler, global/micro step, epoch, dataloader/sampler cursor, all RNG states,
+  router/budget state, cache identity, code/config/contract/upstream/data hashes,
+  and checkpoint checksum before continuing. Any mismatch fails closed.
+
+## Common handback
+
+Each Executor runs workflow `inspect` and `validate`, task-specific tests, checks
+its complete diff and clean worktree, commits one task boundary, appends exactly
+one self-check/handback block with primary evidence and limitations, then stops
+for a fresh independent Reviewer. No Executor may begin T003, T004, T010, T018,
+T023, training, or another wave.

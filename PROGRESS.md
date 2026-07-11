@@ -825,3 +825,52 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
   mode-600 evidence, current PR/check/protection/refs, and the disclosed no-op
   HTTP 400 before deciding T000 closure and any T001 authorization.
 - Status: HANDED BACK FOR REVIEW
+
+### [2026-07-12] Review T000-R6 - formal independent review and T000 closure
+- Reviewed object: commit
+  `e0359f7500e5135efaf38243127edaa881b9ddc7`, parent
+  `4f34c8e909960ffaa6462a9aa8f872e1557043f3`, on
+  `fix/t000-r6-public-controls`; the worktree was clean and the complete tracked
+  diff was an append-only 87-line addition to `PROGRESS.md` only.
+- Reviewer platform: Codex
+- Reviewer independence: PASS - this fresh role-locked Reviewer did not execute
+  T000-R6, move remote main, change PR #1, trigger CI, or configure protection;
+  it independently reread HANDOFF/PROGRESS/REVIEW_PROTOCOL and primary mode-600
+  evidence, verified hashes and repository isolation, reran validation, and used
+  only current read-only Git/GitHub probes before this Reviewer-only semantic edit.
+- Workflow and frozen-source evidence: PASS - inspect reported the newer R6
+  handback as `REVIEW_REQUIRED`; workflow validate returned no errors/warnings;
+  all 91 manifest entries and the bundle validator (14 contracts, 6 schemas, 69
+  tasks, 7 Gate checklists) passed independently.
+- Bootstrap and hosted-state evidence: PASS - saved evidence hashes all verify;
+  remote `main` made the exact single fast-forward `90fc21e -> f34dbba`, where
+  the reviewed workflow exists and is registered. The disclosed first protection
+  request is a proved HTTP-400 no-op; protection remained 404 until the sole
+  valid JSON PUT, so no hidden or duplicate effective mutation occurred.
+- PR and CI evidence: PASS - current read-only state proves public repository
+  `Crushinrain/code-verifier-triage` with admin access; PR #1 is open, unmerged,
+  base `main=f34dbba`, immutable head `1360e76`. Reopened-event run
+  `29165063905` and sole required job/check `contracts` (`86576654937`) are
+  completed success on exact head `1360e76`.
+- Protection evidence: PASS - current classic protection on main is strict and
+  requires only context `contracts`, requires PRs with zero approving reviews,
+  enforces administrators, has no restrictions, blocks force pushes/deletions,
+  and leaves unrelated rules disabled; current rulesets are empty.
+- Publication and isolation evidence: PASS - remote R5/R6 refs equal recorded
+  SHAs; the R6 final non-force push is rc 0. Project Git/SSH hashes and private
+  key metadata match their baselines; the parent repository HEAD/config/index
+  hashes are unchanged and its pre-existing `M PV_forecast` remains isolated.
+- T000 acceptance: PASS - bootstrap integrity, CI, PR-only protected-main
+  enforcement, evidence durability, and project/parent isolation are all proven.
+  T000 is CLOSED. This verdict itself does not authorize research execution; the
+  new HANDOFF separately authorizes only the T001/T002/T005 Gate 0 launch wave.
+- Durable shared-GPU policy: every later training manifest must use atomic
+  checkpoint intervals of 10 minutes/50 optimizer steps for LoRA smoke and 20
+  minutes/100 steps for full/FSDP (first reached, never over 30 minutes); signals
+  or PAUSE checkpoint after the current atomic step, stop and prove GPU release;
+  retain latest3 plus milestones; resume must verify model, optimizer, scheduler,
+  dataloader cursor, RNG, router/budget/cache state, and all source/data hashes.
+- Decision rationale: every R6 acceptance item has direct current evidence and
+  no contradictory state remains; the shortest safe next step is the isolated
+  parallel T001/T002/T005 launch recorded in the replacement HANDOFF.
+- Gate decision: APPROVE
