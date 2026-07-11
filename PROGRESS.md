@@ -874,3 +874,28 @@ Append execution facts, handbacks, formal reviews, and corrections. Do not rewri
   no contradictory state remains; the shortest safe next step is the isolated
   parallel T001/T002/T005 launch recorded in the replacement HANDOFF.
 - Gate decision: APPROVE
+
+### [2026-07-12 03:56 +08:00] Batch T005 - contract CI handback
+- Active role: EXECUTOR; only T005 was executed from fixed base
+  `2b5c72bdc48c465d8eea4a604905564772edbc02` in the required worktree.
+- Implementation: added an explicit project-root validator, an ordered 14-file
+  active-contract digest checker and `.workflow/contracts.sha256`, real CLI
+  regression tests, and the corresponding least-privilege `contracts` CI steps.
+- Positive evidence: legacy and explicit validators each reported 14 contracts,
+  6 schemas, 69 tasks and 7 Gate checklists; the active aggregate SHA-256 is
+  `8e79d65f90db5b3db1c3e379e15be84fbdf4e15ab99fce4753148331e314c077`.
+- Negative evidence: six pytest cases passed using isolated bundles and real
+  subprocess CLIs for invalid schema, invalid task document, missing dependency,
+  dependency cycle, and active-contract digest drift.
+- Provenance: all 91 starter manifest entries passed and `MANIFEST.sha256`
+  remains unchanged; workflow validate returned zero errors/warnings.
+- Frozen boundary: contracts, schemas, task graph, approvals and Claims are
+  unchanged; no GPU, model, data, upstream clone or candidate execution occurred.
+- Integration requirement: after T005 review, T002 must integrate the reviewed
+  T005 SHA and refresh `.workflow/contracts.sha256` together with its authorized
+  `contracts/upstream.lock.yaml` change; otherwise CI must reject the drift.
+- Limitation: hosted CI was not pushed or run; local CI-equivalent checks pass.
+- Task T005: pass - normal checks pass and every required corruption fails closed.
+- Reviewer attention: independently rerun tests, validators, manifest/digest,
+  workflow checks, and preserve the stated T002 integration ordering.
+- Status: HANDED BACK FOR REVIEW
